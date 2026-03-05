@@ -1,0 +1,7 @@
+model:
+  eval: true
+  init_points: 750000
+  resolution: 2
+  num_frames: 300
+opt:
+  random_background: true

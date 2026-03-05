@@ -1,0 +1,28 @@
+repos:
+  # general syntax hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: end-of-file-fixer
+      # - id: check-symlinks
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.9
+    hooks:
+      # Run the linter.
+      - id: ruff
+        types_or: [python, pyi, jupyter]
+      # Run the formatter.
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]
+
+  # for jupyter notebooks
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+      - id: nbstripout
+        files: ".ipynb"

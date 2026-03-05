@@ -1,0 +1,75 @@
+[project]
+name = "opensplat3d"
+version = "0.1.0"
+description = "OpenSplat3D: Open-Vocabulary 3D Instance Segmentation using Gaussian Splatting"
+authors = [
+    { name = "Jens Piekenbrinck", email = "piekenbrinck@vision.rwth-aachen.de" }
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "accelerate>=1.6.0",
+    "clip",
+    "cuml-cu12==25.4.*",
+    "imageio>=2.37.0",
+    "ipykernel>=6.29.5",
+    "ipympl>=0.9.7",
+    "matplotlib>=3.10.3",
+    "munch>=4.0.0",
+    "omegaconf>=2.3.0",
+    "open-clip-torch>=2.32.0",
+    "open3d>=0.19.0",
+    "opencv-python>=4.11.0.86",
+    "plyfile>=1.1",
+    "pykeops>=2.3",
+    "rerun-sdk>=0.23.2",
+    "scikit-learn>=1.6.1",
+    "segment-anything",
+    "sentencepiece>=0.2.0",
+    "tabulate>=0.9.0",
+    "torch==2.5.1",
+    "torchao>=0.11.0",
+    "torchvision==0.20.1",
+    "tqdm>=4.67.1",
+    "transformers>=4.51.3",
+    "viser>=0.2.23",
+    "wandb>=0.20.1",
+    "scannetpp",
+]
+
+[project.optional-dependencies]
+compile = ["groundingdino", "fused-ssim", "simple-knn", "diff-gaussian-rasterization"]
+
+[tool.uv]
+no-build-isolation-package = ["groundingdino", "fused-ssim", "simple-knn", "diff-gaussian-rasterization"]
+
+[tool.uv.sources]
+cuml-cu12 = { index = "cuml-cu12" }
+groundingdino = { git = "https://github.com/IDEA-Research/GroundingDINO" }
+segment-anything = { git = "https://github.com/facebookresearch/segment-anything.git" }
+clip = { git = "https://github.com/openai/CLIP.git" }
+simple-knn = { path = "submodules/simple-knn" }
+diff-gaussian-rasterization = { path = "submodules/diff-gaussian-rasterization" }
+fused-ssim = { git = "https://github.com/rahul-goel/fused-ssim", rev = "30fb258c8a38fe61e640c382f891f14b2e8b0b5a" }
+scannetpp = { path = "submodules/scannetpp" }
+
+[[tool.uv.index]]
+name = "cuml-cu12"
+url = "https://pypi.nvidia.com/"
+explicit = true
+
+[[tool.uv.dependency-metadata]]
+name = "simple-knn"
+version = "0.0.0"
+requires-dist = ["torch", "setuptools"]
+
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
