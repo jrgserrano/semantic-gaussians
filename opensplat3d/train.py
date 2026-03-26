@@ -12,7 +12,10 @@ from opensplat3d.eval.scannetpp.export_predictions import export_scenes_predicti
 from opensplat3d.gaussian_model import create_from_pcd, create_from_ply, save_gaussians
 from opensplat3d.gaussian_optimizer import GaussianOptimizer
 from opensplat3d.gaussian_renderer import render
+from opensplat3d.language import LanguageModel
 from opensplat3d.language.embed import embed
+from opensplat3d.semantic.descriptions import compute_descriptions, CropParams
+from opensplat3d.utils.setup_utils import SetupParams
 from opensplat3d.losses import instance_2d_loss, l1_loss, ssim
 from opensplat3d.params import ModelParams, OptimizationParams, PipeParams
 from opensplat3d.scene import Scene
@@ -441,6 +444,37 @@ if __name__ == "__main__":
                 config.lang.pred_thresh,
             )
             print("\n\n")
+
+            if config.desc.enabled:
+                print("Generating Object Descriptions")
+                lang_model = LanguageModel(config.lang.model)
+                crop_params = CropParams(
+                    lang_model.img_size,
+                    config.lang.levels,
+                    config.lang.masked,
+                    config.lang.ratio,
+                    config.lang.dynamic_ratio,
+                    config.lang.alpha_blend,
+                )
+                setup_params = SetupParams(
+                    model_params=config.model,
+                    opt_params=config.opt,
+                    config=config,
+                    gaussians=gaussians,
+                    scene=scene,
+                    device=device,
+                )
+                compute_descriptions(
+                    setup_params,
+                    lang_model,
+                    crop_params,
+                    config.lang.rendering,
+                    config.lang.pred_thresh,
+                    config.desc.topk,
+                    config.desc.vlm,
+                    config.desc.debug,
+                )
+                print("\n\n")
 
             if config.export_scannetpp.enabled:
                 print("\n\n")

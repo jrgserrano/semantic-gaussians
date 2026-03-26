@@ -89,6 +89,17 @@ class LanguageModel:
 
         self.prompt_template = "an image of {}"
 
+    def to(self, device):
+        if self.model_type == "clip":
+            if getattr(self, "clip_model", None) is not None:
+                self.clip_model.to(device)
+        elif self.model_type == "siglip":
+            if getattr(self, "siglip_model", None) is not None:
+                self.siglip_model.to(device)
+        elif self.model_type == "masqclip":
+            if getattr(self, "masqclip_model", None) is not None:
+                self.masqclip_model.to(device)
+
     @torch.no_grad()
     def preprocess_images(self, images: torch.Tensor | npt.NDArray) -> torch.Tensor:
         # images: (B, C, H, W) if torch, (B, H, W, C) if numpy

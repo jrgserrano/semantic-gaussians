@@ -106,3 +106,11 @@ class ExportScanNetppParams:
     knn_k: int = 1
     sem_topk: int = 3
     use_segments: bool = False
+
+
+@dataclass
+class DescriptionParams:
+    enabled: bool = False
+    vlm: str = "llava-hf/llava-1.5-7b-hf"
+    topk: int = 3
+    debug: bool = False

@@ -5,6 +5,7 @@ from omegaconf import DictConfig, OmegaConf
 
 from opensplat3d.params import (
     ClusterParams,
+    DescriptionParams,
     ExportScanNetppParams,
     LanguageParams,
     ModelParams,
@@ -23,6 +24,7 @@ class Config:
     export_scannetpp: ExportScanNetppParams = field(
         default_factory=lambda: ExportScanNetppParams()
     )
+    desc: DescriptionParams = field(default_factory=lambda: DescriptionParams())
 
 
 def to_dict(config: Config) -> dict:

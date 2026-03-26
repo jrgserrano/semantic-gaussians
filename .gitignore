@@ -21,6 +21,7 @@ docs/build
 /ckpts
 /slurm_output
 /slurm_ckpts
+/outputs
 
 submodules/simple-knn
 *.pt
