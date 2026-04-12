@@ -1,3 +1,5 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import time
 import traceback
 from dataclasses import dataclass
@@ -79,7 +81,11 @@ class LabelSelection:
 
 class ViserViewer:
     def __init__(
-        self, model_dir: str, vis_cameras: bool = True, language: str | None = None
+        self,
+        model_dir: str,
+        vis_cameras: bool = True,
+        language: str | None = None,
+        initial_resolution: int = 1240,
     ) -> None:
         self.model_dir = Path(model_dir)
         setup_params = setup(self.model_dir, load_masks=False)
@@ -174,7 +180,7 @@ class ViserViewer:
 
         # Render section
         self.resolution_slider = self.server.gui.add_slider(
-            "Resolution", min=384, max=4096, step=2, initial_value=1240
+            "Resolution", min=384, max=4096, step=2, initial_value=initial_resolution
         )
 
         @self.resolution_slider.on_update
@@ -217,11 +223,36 @@ class ViserViewer:
             self.need_update = True
 
         if self.labels is not None and self.sorted_labels is not None:
+            vlm_descriptions = {}
+            if language is not None:
+                desc_path = model_path / f"{language}_descriptions.pth"
+                if desc_path.exists():
+                    try:
+                        desc_data = torch.load(desc_path, weights_only=False)
+                        for k, v in desc_data.items():
+                            vlm_descriptions[k] = v["descriptions"][0]
+                    except Exception as e:
+                        print(f"Could not load vlm semantic descriptions from {desc_path}: {e}")
+
+            options = ["all"]
+            if -1 in self.sorted_labels.tolist():
+                options.append("!= -1")
+            
+            self.label_mapping = {}
+            for lbl in self.sorted_labels.tolist():
+                if lbl in vlm_descriptions:
+                    desc_text = vlm_descriptions[lbl]
+                    if len(desc_text) > 60:
+                        desc_text = desc_text[:57] + "..."
+                    opt_str = f"#{lbl}: {desc_text}"
+                else:
+                    opt_str = str(lbl)
+                options.append(opt_str)
+                self.label_mapping[opt_str] = lbl
+
             self.label_dropdown = self.server.gui.add_dropdown(
                 "Label",
-                options=["all"]
-                + (["!= -1"] if -1 in labels_ else [])
-                + list(map(lambda x: str(x), self.sorted_labels.tolist())),
+                options=options,
                 initial_value="all",
                 hint="Render cluster labels",
             )
@@ -248,7 +279,12 @@ class ViserViewer:
                         self.need_update = True
                         return
 
-                    label = int(event.target.value)
+                    label_val = event.target.value
+                    if label_val in self.label_mapping:
+                        label = int(self.label_mapping[label_val])
+                    else:
+                        label = int(label_val)
+                        
                     mask: torch.BoolTensor = self.labels == label  # type: ignore
                     self.selection = LabelSelection(
                         sub_gaussians(self.gaussians, mask), mask, label
@@ -921,8 +957,10 @@ class ViserViewer:
         self.need_update = False
 
 
-def main(model_dir: str, vis_cameras: bool, language: str | None) -> None:
-    viewer = ViserViewer(model_dir, vis_cameras, language)
+def main(
+    model_dir: str, vis_cameras: bool, language: str | None, resolution: int
+) -> None:
+    viewer = ViserViewer(model_dir, vis_cameras, language, resolution)
 
     while True:
         viewer.update()
@@ -940,11 +978,14 @@ if __name__ == "__main__":
         help="Language model",
     )
     parser.add_argument("--cameras", action="store_true", help="Visualize cameras")
+    parser.add_argument(
+        "--resolution", type=int, default=1240, help="Initial render resolution"
+    )
 
     args = parser.parse_args()
 
     try:
-        main(args.model_dir, args.cameras, args.language)
+        main(args.model_dir, args.cameras, args.language, args.resolution)
     except KeyboardInterrupt:
         print("\nExiting viewer...")
         exit(0)

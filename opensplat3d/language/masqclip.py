@@ -329,7 +329,7 @@ class MasQCLIP(nn.Module):
     def get_text_embedding(
         self, prompts: list[str], normalize: bool = False
     ) -> torch.Tensor:
-        tokens = clip.tokenize(prompts).to(self.mask_embeddings.device)
+        tokens = clip.tokenize(prompts, truncate=True).to(self.mask_embeddings.device)
         text_embedding: torch.Tensor = self.clip.encode_text(tokens)
         text_embedding = text_embedding.float().detach()
         if normalize:

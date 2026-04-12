@@ -6,7 +6,13 @@ import imageio.v3 as iio
 import numpy as np
 import numpy.typing as npt
 from omegaconf import OmegaConf
-from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
+try:
+    from sam2.automatic_mask_generator import SAM2AutomaticMaskGenerator
+    from sam2.build_sam import build_sam2
+    SAM_VERSION = 2
+except ImportError:
+    from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
+    SAM_VERSION = 1
 from tqdm import tqdm
 
 from opensplat3d.masks.sam_levels_model import SamLevelsAutomaticMaskGenerator
@@ -96,7 +102,7 @@ def process_mask_level(
 
 
 def compute_masks(
-    mask_generator: SamAutomaticMaskGenerator | SamLevelsAutomaticMaskGenerator,
+    mask_generator: Any,
     image_path: Path,
     postprocess: str | None,
     binary_mask: bool = False,
@@ -149,6 +155,7 @@ def main(
     post_kernel_size: tuple[int, int] | None = None,
     min_mask_region_area: int = 0,
     compress: bool = False,
+    nth_frames: int = 1,
 ):
     if not scene_dir.exists():
         print(f"Scene {scene_dir} does not exist")
@@ -159,21 +166,29 @@ def main(
 
     image_dir = scene_dir / image_subdir
     if not image_dir.exists():
-        print(f"Image directory {image_dir} does not exist")
-        return
+        if (scene_dir / "traj.txt").exists() and (scene_dir / "results").exists():
+            print("traj.txt found, automatically switching image_subdir to 'results' for Replica dataset.")
+            image_dir = scene_dir / "results"
+            image_subdir = "results"
+        else:
+            print(f"Image directory {image_dir} does not exist")
+            return
     if not image_dir.is_dir():
         print(f"Image directory {image_dir} is not a directory")
         return
 
-    print("Loading SAM model")
-    sam = sam_model_registry["vit_h"](checkpoint="ckpts/sam_vit_h_4b8939.pth")
-    sam.cuda()
+    print("Loading SAM 2 model")
+    sam2_checkpoint = "ckpts/sam2_hiera_large.pt"
+    model_cfg = "sam2_hiera_l"
+    sam = build_sam2(model_cfg, sam2_checkpoint, device="cuda")
+
     if levels:
+        # Note: levels logic might need update in sam_levels_model.py
         mask_generator = SamLevelsAutomaticMaskGenerator(
             sam, min_mask_region_area=min_mask_region_area
         )
     else:
-        mask_generator = SamAutomaticMaskGenerator(
+        mask_generator = SAM2AutomaticMaskGenerator(
             sam, min_mask_region_area=min_mask_region_area
         )
 
@@ -198,9 +213,12 @@ def main(
         [
             x
             for x in image_dir.iterdir()
-            if x.is_file() and x.suffix.lower() in IMAGE_SUFFIXES
+            if x.is_file() and x.suffix.lower() in IMAGE_SUFFIXES and not x.name.startswith("depth")
         ]
     )
+    if nth_frames > 1:
+        imgs = imgs[::nth_frames]
+        print(f"Subsampling masks frame extraction with nth_frames={nth_frames}. Selected {len(imgs)} frames.")
     for image_path in tqdm(imgs, total=len(imgs)):
         mask_path = output_dir / f"{image_path.stem}.npz"
         if mask_path.exists():
@@ -284,6 +302,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Compress the masks",
     )
+    parser.add_argument(
+        "--nth-frames",
+        type=int,
+        default=1,
+        help="Only extract masks for every Nth frame to save time (e.g. 5 means 1/5th of frames)",
+    )
 
     args = parser.parse_args()
 
@@ -304,4 +328,5 @@ if __name__ == "__main__":
         else None,
         args.min_mask_region_area,
         args.compress,
+        args.nth_frames,
     )

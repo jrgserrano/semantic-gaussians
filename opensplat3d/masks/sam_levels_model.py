@@ -1,9 +1,9 @@
-from typing import Any
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 import torch
-from segment_anything import SamAutomaticMaskGenerator
-from segment_anything.utils.amg import (
+from sam2.automatic_mask_generator import SAM2AutomaticMaskGenerator
+from sam2.utils.amg import (
     MaskData,
     area_from_rle,
     batch_iterator,
@@ -22,7 +22,7 @@ from segment_anything.utils.amg import (
 from torchvision.ops.boxes import batched_nms, box_area
 
 
-class SamLevelsAutomaticMaskGenerator(SamAutomaticMaskGenerator):
+class SamLevelsAutomaticMaskGenerator(SAM2AutomaticMaskGenerator):
     @torch.no_grad()
     def generate(self, image: np.ndarray) -> tuple[list[dict[str, Any]], ...]:
         """
@@ -156,7 +156,7 @@ class SamLevelsAutomaticMaskGenerator(SamAutomaticMaskGenerator):
             for u, v in zip(data_levels, batch_data):
                 u.cat(v)
             del batch_data
-        self.predictor.reset_image()
+        self.predictor.reset_predictor()
 
         data_levels = tuple(
             self._process_crop_data(data, crop_box) for data in data_levels
@@ -190,12 +190,16 @@ class SamLevelsAutomaticMaskGenerator(SamAutomaticMaskGenerator):
         orig_h, orig_w = orig_size
 
         # Run model on this batch
-        transformed_points = self.predictor.transform.apply_coords(points, im_size)
-        in_points = torch.as_tensor(transformed_points, device=self.predictor.device)
+        # Transformed coords are handled by the predictor if needed. 
+        # For SAM 2 AMGs, points are already in image coordinates usually.
+        in_points = torch.as_tensor(points, device=self.predictor.device)
         in_labels = torch.ones(
             in_points.shape[0], dtype=torch.int, device=in_points.device
         )
-        masks, iou_preds, _ = self.predictor.predict_torch(
+        
+        # SAM 2 predictor.predict_batch logic
+        # We need the multimask output to get different levels
+        masks, iou_preds, _ = self.predictor.predict_batch(
             in_points[:, None, :],
             in_labels[:, None],
             multimask_output=True,
@@ -239,7 +243,7 @@ class SamLevelsAutomaticMaskGenerator(SamAutomaticMaskGenerator):
         # Calculate stability score
         data["stability_score"] = calculate_stability_score(
             data["masks"],
-            self.predictor.model.mask_threshold,
+            self.mask_threshold,
             self.stability_score_offset,
         )
         if self.stability_score_thresh > 0.0:
@@ -247,7 +251,7 @@ class SamLevelsAutomaticMaskGenerator(SamAutomaticMaskGenerator):
             data.filter(keep_mask)
 
         # Threshold masks and calculate boxes
-        data["masks"] = data["masks"] > self.predictor.model.mask_threshold
+        data["masks"] = data["masks"] > self.mask_threshold
         data["boxes"] = batched_mask_to_box(data["masks"])
 
         # Filter boxes that touch crop boundaries

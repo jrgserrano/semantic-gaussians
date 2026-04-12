@@ -1,0 +1,3 @@
+- model.source_path=/home/ubuntu/datasets/Replica/office0
+- model.model_path=output/training_study_replica
+- opt.lambda_depth=0.5

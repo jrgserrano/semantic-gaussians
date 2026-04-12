@@ -1,9 +1,27 @@
+import os
+import sys
+
+# CRITICAL: Environment Isolation
+# TITAN X (Pascal) crashes cuML kernels. 
+# We force the process to only see the RTX 3060 Ti (Device 0) 
+# to prevent cuML from probing the incompatible card.
+if "CUDA_VISIBLE_DEVICES" not in os.environ:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 import json
 from pathlib import Path
-
 import numpy as np
 import numpy.typing as npt
-from cuml.cluster import DBSCAN, HDBSCAN
+import torch
+import sklearn.cluster as sklearn_cluster
+import hdbscan as cpu_hdbscan
+
+try:
+    from cuml.cluster import DBSCAN as GPU_DBSCAN
+    from cuml.cluster import HDBSCAN as GPU_HDBSCAN
+except (ImportError, Exception):
+    print("Warning: GPU Clustering via cuML disabled (expected on some architectures).")
+    GPU_DBSCAN, GPU_HDBSCAN = None, None
 from diff_gaussian_rasterization import MAX_FEATURE_DIM
 from omegaconf import OmegaConf
 from tqdm import tqdm
@@ -59,7 +77,19 @@ def dbscan_denoising(
             continue
         mask = labels_ == label
         cluster = xyz[mask]
-        new_labels = DBSCAN(min_samples=min_samples, eps=eps).fit_predict(cluster)
+        
+        # Try GPU DBSCAN first
+        try:
+            if GPU_DBSCAN is not None:
+                new_labels = GPU_DBSCAN(min_samples=min_samples, eps=eps).fit_predict(cluster)
+            else:
+                raise ImportError("GPU DBSCAN not available")
+        except Exception as e:
+            if "cudaErrorNoKernelImageForDevice" in str(e) or isinstance(e, ImportError):
+                print(f"CUDA Error/Missing (Pascal logic): Falling back to CPU DBSCAN for label {label}...")
+                new_labels = sklearn_cluster.DBSCAN(min_samples=min_samples, eps=eps).fit_predict(cluster)
+            else:
+                raise e
 
         # label -> -1, 0, 1, 2, ...
         # Set all cluster points to -1 and add new labels for new clusters
@@ -149,11 +179,32 @@ def hdbscan_clustering(
         with_color,
     )
     print("\nMask level:", mask_level, f"({cluster_features.shape[-1]} dims)")
-    labels: npt.NDArray = HDBSCAN(
-        min_cluster_size=min_cluster_size,
-        min_samples=min_samples,
-        cluster_selection_epsilon=cluster_selection_epsilon,
-    ).fit_predict(cluster_features)
+    
+    # Try GPU HDBSCAN first
+    try:
+        if GPU_HDBSCAN is not None:
+            print("Attempting GPU HDBSCAN...")
+            labels: npt.NDArray = GPU_HDBSCAN(
+                min_cluster_size=min_cluster_size,
+                min_samples=min_samples,
+                cluster_selection_epsilon=cluster_selection_epsilon,
+            ).fit_predict(cluster_features)
+        else:
+            raise ImportError("GPU HDBSCAN not available")
+    except Exception as e:
+        # Check if it's the specific Pascal architecture error
+        if "cudaErrorNoKernelImageForDevice" in str(e) or isinstance(e, ImportError):
+            print("\n!!! CUDA Error (Pascal 6.1 detected) !!!")
+            print("cuML does not support HDBSCAN on this architecture.")
+            print("Falling back to CPU HDBSCAN (this might take a few minutes)...")
+            labels: npt.NDArray = cpu_hdbscan.HDBSCAN(
+                min_cluster_size=min_cluster_size,
+                min_samples=min_samples,
+                cluster_selection_epsilon=cluster_selection_epsilon,
+                core_dist_n_jobs=-1 # Use all CPU cores
+            ).fit_predict(cluster_features)
+        else:
+            raise e
 
     unique, count = np.unique(labels, return_counts=True)
     sort_index = np.argsort(count)[::-1]

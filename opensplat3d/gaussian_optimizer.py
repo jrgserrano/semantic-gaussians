@@ -104,6 +104,7 @@ class GaussianOptimizer:
 
         self.max_radii2D = torch.zeros((self.model.num_points), device=device)
         self.xyz_gradient_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.importance_accum = torch.zeros((self.model.num_points, 1), device=device)
         self.denom = torch.zeros((self.model.num_points, 1), device=device)
 
         params = []
@@ -165,6 +166,7 @@ class GaussianOptimizer:
     def to(self, device: torch.device):
         self.max_radii2D = self.max_radii2D.to(device)
         self.xyz_gradient_accum = self.xyz_gradient_accum.to(device)
+        self.importance_accum = self.importance_accum.to(device)
         self.denom = self.denom.to(device)
         return self
 
@@ -179,6 +181,7 @@ class GaussianOptimizer:
             "active_sh_degree": self.active_sh_degree,
             "max_radii2D": self.max_radii2D,
             "xyz_gradient_accum": self.xyz_gradient_accum,
+            "importance_accum": self.importance_accum,
             "denom": self.denom,
             "optimizer": self.optimizer.state_dict(),
             "spatial_lr_scale": self.spatial_lr_scale,
@@ -187,7 +190,8 @@ class GaussianOptimizer:
     def load_state_dict(self, state_dict: dict):
         self.active_sh_degree = state_dict["active_sh_degree"]
         self.max_radii2D = state_dict["max_radii2D"]
-        self.xyz_gradient_accum = state_dict["xyz_gradient_accum"]
+        self.xyz_gradient_accum = state_dict.get("xyz_gradient_accum", torch.zeros_like(self.xyz_gradient_accum))
+        self.importance_accum = state_dict.get("importance_accum", torch.zeros_like(self.importance_accum))
         self.denom = state_dict["denom"]
         self.optimizer.load_state_dict(state_dict["optimizer"])
         self.spatial_lr_scale = state_dict["spatial_lr_scale"]
@@ -246,6 +250,19 @@ class GaussianOptimizer:
         )
         self.denom[visibility_filter] += 1
 
+    def add_importance_stats(self, opacity_grad_rgb: torch.Tensor | None = None, opacity_grad_feat: torch.Tensor | None = None, opt: OptimizationParams | None = None):
+        """
+        Accumulates the weighted importance score psi_i (FeatureSLAM).
+        psi_i = sum( lambda_c * |d_alpha/d_Lrgb| + lambda_f * |d_alpha/d_Lfeat| )
+        """
+        if opacity_grad_rgb is not None and opacity_grad_feat is not None and opt is not None:
+            # Weighted importance
+            score = opt.lambda_c * torch.abs(opacity_grad_rgb) + opt.lambda_f * torch.abs(opacity_grad_feat)
+            self.importance_accum += score
+        elif self.model._opacity.grad is not None:
+            # Fallback to total gradient if components aren't provided
+            self.importance_accum += torch.abs(self.model._opacity.grad)
+
     def update_model(self, optimizable_tensors: dict[str, torch.Tensor]):
         self.model._xyz = optimizable_tensors["xyz"]
         self.model._features_dc = optimizable_tensors["f_dc"]
@@ -266,6 +283,7 @@ class GaussianOptimizer:
         # update densification state
         self.max_radii2D = self.max_radii2D[valid_points_mask]
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
+        self.importance_accum = self.importance_accum[valid_points_mask]
         self.denom = self.denom[valid_points_mask]
 
     def densification_postfix(
@@ -298,6 +316,7 @@ class GaussianOptimizer:
         device = self.denom.device
         self.max_radii2D = torch.zeros((self.model.num_points), device=device)
         self.xyz_gradient_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.importance_accum = torch.zeros((self.model.num_points, 1), device=device)
         self.denom = torch.zeros((self.model.num_points, 1), device=device)
 
     def densify_and_clone(
@@ -417,7 +436,96 @@ class GaussianOptimizer:
             prune_mask = torch.logical_or(  # type: ignore
                 torch.logical_or(prune_mask, big_points_vs), big_points_ws
             )
+        num_pruned = prune_mask.sum().item()
         self.prune_points(prune_mask)
+        return {"pruned": num_pruned, "mean_metric": 0.0}
 
-        # assume tensors are on cuda device
+    def semantic_pruning(self, percentile: float) -> dict:
+        """
+        Prunes Gaussians with an importance score below the given percentile.
+        Guarantees that only 'meaningful' Gaussians (high-grad) are kept.
+        """
+        if self.denom.sum() == 0 or percentile <= 0 or percentile >= 1:
+            return {"pruned": 0, "mean_metric": 0.0}
+
+        # Importance score normalized by views seen
+        score = self.importance_accum / (self.denom + 1e-8)
+        threshold = torch.quantile(score, percentile)
+        prune_mask = (score <= threshold).squeeze()
+        
+        num_pruned = prune_mask.sum().item()
+        mean_val = score[prune_mask].mean().item() if num_pruned > 0 else 0.0
+        
+        if num_pruned > 0:
+            self.prune_points(prune_mask)
+
         torch.cuda.empty_cache()
+        return {"pruned": num_pruned, "mean_metric": mean_val}
+
+    @torch.no_grad()
+    def redundancy_pruning(self, tau_dist: float, tau_sim: float, K: int = 4) -> dict:
+        """
+        LEGO-SLAM redundancy pruning.
+        Checks if a Gaussian is too close and too semantically similar to its neighbors.
+        """
+        xyz = self.model.get_xyz
+        features = self.model.get_features
+        if features is None:
+            return {"pruned": 0, "mean_metric": 0.0}
+
+        # Normalize features for cosine similarity
+        features = torch.nn.functional.normalize(features, dim=1)
+        
+        # Memory-efficient redundancy check (safe for 8GB VRAM)
+        num_pts = xyz.shape[0]
+        block_size = 2000 # Smaller blocks for 8GB safety
+        prune_mask = torch.zeros(num_pts, dtype=torch.bool, device=xyz.device)
+        
+        # We sample a subset of neighbors to check against to avoid OOM
+        # For a truly robust N-logN search, we'd need a KD-Tree, but here 
+        # we'll use a chunked batch approach.
+        for i in range(0, num_pts, block_size):
+            end = min(i + block_size, num_pts)
+            # Compare block against itself + a random sample of the cloud
+            # to keep memory low while catching global redundancy
+            sample_idx = torch.randint(0, num_pts, (block_size,), device=xyz.device)
+            compare_xyz = torch.cat([xyz[i:end], xyz[sample_idx]], dim=0)
+            compare_feat = torch.cat([features[i:end], features[sample_idx]], dim=0)
+            
+            dists = torch.cdist(xyz[i:end], compare_xyz)
+            # Mask out self-comparison (diagonal)
+            dists[:, : (end - i)].fill_diagonal_(float("inf"))
+            
+            near_vals, near_idx = dists.topk(K, largest=False)
+            spat_mask = (near_vals < tau_dist).any(dim=1)
+            
+            sim_mask = torch.zeros_like(spat_mask)
+            for k in range(K):
+                sim = (features[i:end] * compare_feat[near_idx[:, k]]).sum(dim=1)
+                sim_mask = torch.logical_or(sim_mask, sim > tau_sim)
+            
+            prune_mask[i:end] = torch.logical_and(spat_mask, sim_mask)
+
+        num_pruned = prune_mask.sum().item()
+        if num_pruned > 0:
+            self.prune_points(prune_mask)
+            
+        return {"pruned": num_pruned, "mean_metric": tau_dist}
+
+    @torch.no_grad()
+    def scale_guided_pruning(self, theta_scale: float) -> dict:
+        """
+        OpenGS-SLAM boundary pruning.
+        Removes Gaussians that are excessively large (often artifacts near boundaries).
+        """
+        scales = self.model.get_scaling
+        max_scales = torch.max(scales, dim=1).values
+        prune_mask = max_scales > theta_scale
+        
+        num_pruned = prune_mask.sum().item()
+        mean_val = max_scales[prune_mask].mean().item() if num_pruned > 0 else 0.0
+        
+        if num_pruned > 0:
+            self.prune_points(prune_mask)
+            
+        return {"pruned": num_pruned, "mean_metric": mean_val}

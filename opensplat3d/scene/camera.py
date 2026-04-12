@@ -20,6 +20,7 @@ class Camera(nn.Module):
         image: torch.FloatTensor,  # CHW
         alpha_mask: torch.FloatTensor | None,
         masks: torch.Tensor | None = None,
+        depth: torch.Tensor | None = None,
     ) -> None:
         super().__init__()
         self.uid = uid
@@ -36,6 +37,7 @@ class Camera(nn.Module):
         self.image_height = self.original_image.size(1)
 
         self.masks = masks
+        self.original_depth = depth
 
         if alpha_mask is not None:
             self.original_image *= alpha_mask
@@ -127,6 +129,13 @@ def to_camera(
             masks = mask_consecutive_labels(masks)
         gt_masks = masks.to(old_device)
 
+    gt_depth: torch.Tensor | None = None
+    if cam_info.depth is not None:
+        depth_resizer = Resize(new_resolution, interpolation=InterpolationMode.BILINEAR)
+        # Depth is usually HxW. We need 1xHxW to resize.
+        depth_tensor = cam_info.depth.unsqueeze(0)
+        gt_depth = depth_resizer(depth_tensor).squeeze(0)
+
     return Camera(
         uid=cam_info.uid,
         name=cam_info.image_name,
@@ -137,6 +146,7 @@ def to_camera(
         image=gt_image,
         alpha_mask=alpha_mask,
         masks=gt_masks,
+        depth=gt_depth,
     )
 
 

@@ -1,3 +1,10 @@
+import os
+import sys
+
+# Force use of only GPU 0 (RTX 3060 Ti) to avoid multi-GPU context/memory issues with TITAN X
+if "CUDA_VISIBLE_DEVICES" not in os.environ:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,6 +31,7 @@ class Stats:
     area: int
     label_count: int
     visible_count: int
+    total_pixels: int
 
 
 def compute_ious(gt_mask: torch.Tensor, pred_mask: torch.Tensor):
@@ -70,6 +78,7 @@ def compute_view_stats(
                 int(area.cpu().item()),
                 label_count,
                 int(visible_count.item()),
+                total_pixels=image.shape[0] * image.shape[1],
             )
         )
     return stats

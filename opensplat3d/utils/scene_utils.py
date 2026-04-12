@@ -23,12 +23,14 @@ class CameraInfo(NamedTuple):
     width: int
     height: int
     masks: torch.Tensor | None
+    depth: torch.Tensor | None = None
 
 
 class BasicPointCloud(NamedTuple):
     points: torch.Tensor
     colors: torch.Tensor
     normals: torch.Tensor
+    instance_ids: torch.Tensor | None = None  # SAM majority-voted instance label per point
 
 
 class NerfNormalization(NamedTuple):

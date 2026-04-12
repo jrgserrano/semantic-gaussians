@@ -150,13 +150,38 @@ def create_from_pcd(
     model._features_dc = nn.Parameter(features[:, :, 0:1].transpose(1, 2).contiguous())
     model._features_rest = nn.Parameter(features[:, :, 1:].transpose(1, 2).contiguous())
     if with_features:
-        # Gaussian Grouping uses RGB2SH to initialize object features
-        # Also they use rand instead of randn
-        model._features = nn.Parameter(
-            init_parameters(
-                (fused_point_cloud.size(0), feature_dim), feature_init, device
+        # If the point cloud carries SAM instance labels, seed features with
+        # per-instance embeddings so that Gaussians of the same object start
+        # close together in feature space (warm-start for clustering).
+        if pcd.instance_ids is not None:
+            ids = pcd.instance_ids.to(device)   # (N,)
+            unique_ids = torch.unique(ids)
+            # Build a deterministic embedding per unique id (seeded by id value)
+            # so that different runs are consistent and different instances are
+            # spread apart in feature space.
+            rng = torch.Generator(device=device)
+            id_to_emb = {}
+            for uid in unique_ids.tolist():
+                rng.manual_seed(int(uid) & 0xFFFFFFFF)
+                id_to_emb[int(uid)] = torch.randn(feature_dim, generator=rng, device=device)
+            feat_init = torch.stack([id_to_emb[int(i.item())] for i in ids])  # (N, D)
+            # Unlabelled points (id=-1) stay random
+            unlabelled = (ids == -1)
+            if unlabelled.any():
+                rng2 = torch.Generator(device=device)
+                feat_init[unlabelled] = torch.randn(
+                    (unlabelled.sum(), feature_dim), generator=rng2, device=device
+                )
+            model._features = nn.Parameter(feat_init * 0.1)
+            print(f"  [Instance Init] Warm-started {(~unlabelled).sum()}/{len(ids)} "
+                  f"Gaussian features from {len(unique_ids)-1} SAM instances.")
+        else:
+            model._features = nn.Parameter(
+                init_parameters(
+                    (fused_point_cloud.size(0), feature_dim), feature_init, device
+                )
             )
-        )
+
     else:
         model._features = None
 

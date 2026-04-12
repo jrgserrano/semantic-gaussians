@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from opensplat3d.utils.loss_utils import create_window
 
 
-@torch.compile()
+# @torch.compile()
 def l1_loss(network_output: torch.Tensor, gt: torch.Tensor):
     return torch.abs((network_output - gt)).mean()
 

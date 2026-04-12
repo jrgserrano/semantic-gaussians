@@ -26,24 +26,40 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 # MODEL_ID = "gemini-3-flash-preview" # @param ["gemini-2.5-flash-lite", "gemini-robotics-er-1.5-preview", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-preview", "gemini-3.1-flash-lite-preview", "gemini-3.1-pro-preview"] {"allow-input":true, isTemplate: true}
-MODEL_ID = "gemini-2.5-flash-lite"
+MODEL_ID = "gemma-3-27b-it"
 
-def call_gemini_robotics(prompt: str, image, config=None) -> str:
+import time
+
+def call_gemini_robotics(prompt: str, images, config=None) -> str:
     default_config = types.GenerateContentConfig(
         temperature=0.5,
-        thinking_config=types.ThinkingConfig(thinking_budget=0)
     )
 
     if config is None:
         config = default_config
     
-    response = client.models.generate_content(
-        model=MODEL_ID,
-        contents=[image, prompt],
-        config=config,
-    )
+    if not isinstance(images, list):
+        images = [images]
 
-    return response.text
+    contents = images + [prompt]
+
+    # Added automatic retry wrapper for 429 Rate Limit (Free tier 30 RPM limit)
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model=MODEL_ID,
+                contents=contents,
+                config=config,
+            )
+            return response.text
+        except Exception as e:
+            if "429" in str(e) or "quota" in str(e).lower() or attempt < max_retries - 1:
+                print(f"  [API Rate Limit Hit] Retrying in {2**(attempt+1)}s...")
+                time.sleep(2 ** (attempt + 1))
+            else:
+                raise e
+    return "Unidentified object."
 
 @dataclass
 class Stats:
@@ -62,27 +78,27 @@ class VLMDebugInfo:
 
 import torchvision.transforms.functional as TF
 
-def apply_vlm_visualization(image: torch.Tensor, mask: torch.Tensor, blur: bool = True, red_outline: bool = True):
+def apply_vlm_visualization(image: torch.Tensor, mask: torch.Tensor, darken: bool = True, red_outline: bool = True):
     # image: (C, H, W) float [0, 1]
     # mask: (H, W) bool
     
-    # 1. Blur and Grayscale background
-    if blur:
-        bg_image = TF.gaussian_blur(image, kernel_size=[51, 51], sigma=[3.0, 3.0])
+    # 1. Darken background
+    mask_float = mask.float()
+    if darken:
+        bg_image = image * 0.3
     else:
         bg_image = image
         
-    gray = (bg_image[0] * 0.2989 + bg_image[1] * 0.5870 + bg_image[2] * 0.1140).unsqueeze(0).repeat(3, 1, 1)
-    
-    # 2. Combine: object Original, background Blurred+Grayscale
-    mask_float = mask.float()
-    vis_image = image * mask_float + gray * (1 - mask_float)
+    # 2. Combine: object Original, background Darkened
+    vis_image = image * mask_float + bg_image * (1 - mask_float)
     
     # 3. Red outline
     if red_outline:
         import torch.nn.functional as F
         kernel = torch.ones(3, 3, device=image.device)
         dilated_mask = (F.conv2d(mask_float.unsqueeze(0).unsqueeze(0), kernel.unsqueeze(0).unsqueeze(0), padding=1) > 0).squeeze()
+        # the mask shape might be smaller due to conv2d, wait actually padding=1 ensures same shape
+        # let's be careful with bounds
         outline = dilated_mask & ~mask
         
         vis_image[0][outline] = 1.0 # Red
@@ -99,16 +115,24 @@ class VLM:
         
         if "qwen" in self.model_id:
             from transformers import Qwen2_5_VLForConditionalGeneration
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.bfloat16,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
+            )
             self.processor = AutoProcessor.from_pretrained(model_id)
             self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
                 model_id,
-                torch_dtype=torch.float16, # Uses standard bfloat16/float16 normally depending on GPU
-                device_map="auto"
+                quantization_config=bnb_config,
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                attn_implementation="eager",
             )
         else:
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
-                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_compute_dtype=torch.bfloat16,
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_use_double_quant=True,
             )
@@ -117,7 +141,8 @@ class VLM:
                 model_id,
                 quantization_config=bnb_config,
                 device_map="auto",
-                torch_dtype=torch.float16,
+                torch_dtype=torch.bfloat16,
+                attn_implementation="eager",
             )
 
     @torch.no_grad()
@@ -157,13 +182,28 @@ class VLM:
                     return_tensors="pt",
                 ).to("cuda")
                 
-                generated_ids = self.model.generate(**inputs, max_new_tokens=60)
-                generated_ids_trimmed = [
-                    out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-                ]
-                description = self.processor.batch_decode(
-                    generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-                )[0].strip()
+                try:
+                    generated_ids = self.model.generate(
+                        **inputs,
+                        max_new_tokens=60,
+                        do_sample=False,
+                    )
+                    generated_ids_trimmed = [
+                        out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+                    ]
+                    description = self.processor.batch_decode(
+                        generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+                    )[0].strip()
+                    # Sanitize markdown junk and truncate to ~30-40 CLIP tokens max
+                    import re
+                    description = re.sub(r'!\[.*?\]\(.*?\)', '', description)  # remove ![]()
+                    description = re.sub(r'https?://\S+', '', description)      # remove URLs
+                    description = description.strip()[:100]
+                    if not description:
+                        description = "Unidentified object or visual noise."
+                except RuntimeError as e:
+                    print(f"\n!!! VLM generation error for image {i}: {e}. Using fallback description.")
+                    description = "Unidentified object or visual noise."
             else:
                 # Llava 1.5 supports multiple images if provided in a list
                 if img_full is not None:
@@ -171,9 +211,19 @@ class VLM:
                 else:
                     inputs = self.processor(text="USER: <image>\n" + prompt + " ASSISTANT:", images=img_zoom, return_tensors="pt").to("cuda")
 
-                output = self.model.generate(**inputs, max_new_tokens=60)
+                output = self.model.generate(
+                    **inputs,
+                    max_new_tokens=60,
+                    do_sample=False,
+                )
                 full_text = self.processor.decode(output[0], skip_special_tokens=True)
                 description = full_text.split("ASSISTANT:")[-1].strip()
+                import re
+                description = re.sub(r'!\[.*?\]\(.*?\)', '', description)
+                description = re.sub(r'https?://\S+', '', description)
+                description = description.strip()[:100]
+                if not description:
+                    description = "Unidentified object or visual noise."
 
             descriptions.append(description)
 
@@ -374,7 +424,12 @@ def compute_descriptions(
     embeddings = torch.from_numpy(embeddings_data["embeddings"])
     valid_mask = embeddings_data["valid"]
     
-    labels = torch.from_numpy(np.load(model_path / "clustering" / "labels_cleaned.npy"))
+    # CRITICAL: Fix for illegal memory access during rasterization
+    # Since Qwen loaded with device_map="auto", the active CUDA context could be 0, 
+    # but the Gaussians are loaded based on setup_params.device.
+    torch.cuda.set_device(setup_params.device)
+    
+    labels = torch.from_numpy(np.load(model_path / "clustering" / "labels.npy"))
     unique_labels = labels.unique()
     unique_labels = unique_labels[unique_labels != -1]
     
@@ -391,15 +446,21 @@ def compute_descriptions(
         bg,
     )
 
-    #vlm = VLM(vlm_model_id)
+    # vlm = VLM(vlm_model_id) # Disabled to use API only
     # Base prompt (without <image> tags, handled by VLM class)
     # The output must contain the name that best describes the object and its attributes (color, texture, shape, usage, etc.),
     
     prompt = """
-    Identify and describe the object shown in the image.
-    The image shows a object marked with a red line, the background of the image has been converted to black and white (grayscale), while the target object itself remains in full color.
-    The output must contain only the name that best describes the object and its attributes (color, texture, shape, usage, etc.),
-    the description must make sense in the context of the object, the output format must be a single phrase.
+    You will receive 3 images of the exact same target object at different zoom levels:
+    1) A full-scene context shot.
+    2) A medium distance shot.
+    3) An extreme close-up of the object.
+    
+    The target object is highlighted with a bright RED OUTLINE. To further help you focus, the rest of the room (outside the red outline) is slightly darkened.
+    Analyze the 3 images carefully. Identify and precisely describe the object inside the red outline.
+    
+    The output must contain ONLY the name that best describes the object, its attributes (color, texture, shape, text written on it, usage, etc.), and the room it is in. No conversing, no markdown formatting.
+    The description must make sense in the context of the room. The output format MUST be a single concise phrase.
     """
 
     results = {}
@@ -415,7 +476,7 @@ def compute_descriptions(
             
     # Sort by size descending and keep top 100
     label_sizes.sort(key=lambda x: x[1], reverse=True)
-    top_100_indices = {x[0] for x in label_sizes[:100]}
+    top_100_indices = {x[0] for x in label_sizes[:20]}
     
     for idx in range(len(valid_mask)):
         if idx not in top_100_indices:
@@ -452,7 +513,10 @@ def compute_descriptions(
             reverse=True,
         )[:topk]
 
-        # Create full-scene context crops (levels=0)
+        # We now focus exclusively on the best view
+        best_stat = selected_stats[0]
+
+        # Crop 1: Full-scene context crops (levels=0)
         vlm_full_params = CropParams(
             img_size=crop_params.img_size,
             levels=0,
@@ -461,52 +525,71 @@ def compute_descriptions(
             dynamic_ratio=crop_params.dynamic_ratio,
             alpha_blend=0.0,
         )
-        all_crops_full = preprocess_crops(
-            render_params, selected_stats, None, vlm_full_params, use_rendering
+        crop_full_dict = preprocess_crops(
+            render_params, [best_stat], None, vlm_full_params, use_rendering
         )
 
-        # Create zoomed-in detail crops (levels=1)
-        vlm_zoom_params = CropParams(
+        # Crop 2: Medium distance context crops (levels=1, expansion=3.0)
+        vlm_medium_params = CropParams(
             img_size=crop_params.img_size,
             levels=1,
             masked_crop=False,
-            expansion_ratio=crop_params.expansion_ratio,
-            dynamic_ratio=crop_params.dynamic_ratio,
+            expansion_ratio=3.0,
+            dynamic_ratio=False,
             alpha_blend=0.0,
         )
-        all_crops_zoom = preprocess_crops(
-            render_params, selected_stats, None, vlm_zoom_params, use_rendering
+        crop_medium_dict = preprocess_crops(
+            render_params, [best_stat], None, vlm_medium_params, use_rendering
+        )
+        
+        # Crop 3: Close-up zoom crops (levels=1, expansion=1.2)
+        vlm_close_params = CropParams(
+            img_size=crop_params.img_size,
+            levels=1,
+            masked_crop=False,
+            expansion_ratio=1.2,
+            dynamic_ratio=False,
+            alpha_blend=0.0,
+        )
+        crop_close_dict = preprocess_crops(
+            render_params, [best_stat], None, vlm_close_params, use_rendering
         )
 
-        if "default" not in all_crops_full or "default" not in all_crops_zoom:
+        if "default" not in crop_full_dict or "default" not in crop_medium_dict or "default" not in crop_close_dict:
             continue
 
-        crop_full_raw, crop_masks_full = all_crops_full["default"]
-        crop_zoom_raw, crop_masks_zoom = all_crops_zoom["default"]
+        raw_full, masks_full = crop_full_dict["default"]
+        raw_medium, masks_medium = crop_medium_dict["default"]
+        raw_close, masks_close = crop_close_dict["default"]
         
         # Apply visualization
-        vis_full = []
-        vis_zoom = []
-        for i in range(crop_full_raw.shape[0]):
-            # Context visualization (with blur and red outline)
-            img_f_float = crop_full_raw[i].float() / 255.0
-            mask_f = crop_masks_full[i].squeeze() > 0
-            vis_full.append((apply_vlm_visualization(img_f_float, mask_f, blur=True, red_outline=False) * 255).byte())
-            
-            # Zoom visualization (keep original, no grayscale, no blur, no red outline)
-            vis_zoom.append(crop_zoom_raw[i])
-            
-        vis_full = torch.stack(vis_full)
-        vis_zoom = torch.stack(vis_zoom)
+        vis_full_img = (apply_vlm_visualization(raw_full[0].float() / 255.0, masks_full[0].squeeze() > 0, darken=True, red_outline=True) * 255).byte()
+        vis_medium_img = (apply_vlm_visualization(raw_medium[0].float() / 255.0, masks_medium[0].squeeze() > 0, darken=True, red_outline=True) * 255).byte()
+        vis_close_img = (apply_vlm_visualization(raw_close[0].float() / 255.0, masks_close[0].squeeze() > 0, darken=False, red_outline=True) * 255).byte()
+        
+        # Pack the 3 views into a single array to send together to Gemini
+        vis_bundle = torch.stack([vis_full_img, vis_medium_img, vis_close_img])
 
         lang_model.to('cpu')
         torch.cuda.empty_cache()
-        # Pass the full scene to VLM
 
-
-        #img_zoom = Image.fromarray(vis_zoom[0].permute(1, 2, 0).cpu().numpy())
-        img_full = Image.fromarray(vis_full[0].permute(1, 2, 0).cpu().numpy())
-        raw_descriptions = [call_gemini_robotics(prompt, img_full)] # vlm.get_description(vis_zoom, None, prompt)
+        # Bypass local VLM and use Google API: Pass all 3 scale images in ONE single request
+        images_list = []
+        for i in range(vis_bundle.shape[0]):
+            img = Image.fromarray(vis_bundle[i].permute(1, 2, 0).cpu().numpy())
+            images_list.append(img)
+            
+        try:
+            desc = call_gemini_robotics(prompt, images_list)
+            # Since there is only 1 best perspective now (which generated the 3 crops),
+            # we simply return a single description for this label, but keeping the loop
+            # structure so the rest of the script (similarity check) functions perfectly.
+            raw_descriptions = [desc]
+            # Hard limit timer to stay securely below 30 RPM (Free Tier)
+            time.sleep(2.1)
+        except Exception as e:
+            print(f"Gemini API error: {e}")
+            raw_descriptions = ["Unidentified object."]
         
         # Strip "Description: " prefix
         descriptions = []
@@ -570,10 +653,10 @@ def compute_descriptions(
             label_debug_dir = debug_dir / str(label_id)
             label_debug_dir.mkdir(parents=True, exist_ok=True)
             
-            # Save both images
-            for i in range(len(descriptions)):
-                Image.fromarray(vis_zoom[i].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / f"view_{i}_zoom.png")
-                Image.fromarray(vis_full[i].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / f"view_{i}_full.png")
+            # Save the 3 scale images
+            Image.fromarray(vis_bundle[0].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / "0_full_scene.png")
+            Image.fromarray(vis_bundle[1].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / "1_medium_distance.png")
+            Image.fromarray(vis_bundle[2].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / "2_extreme_close.png")
             
             # Save all info to a text file
             with open(label_debug_dir / "info.txt", "w") as f:
@@ -590,6 +673,10 @@ def compute_descriptions(
             "view_info": view_info if debug else None
         }
         torch.cuda.empty_cache()
+        
+        # Iterative Auto-Save so we don't lose progress if interrupted
+        output_path = model_path / f"{lang_model.model_type}_descriptions.pth"
+        torch.save(results, output_path)
 
     output_path = model_path / f"{lang_model.model_type}_descriptions.pth"
     torch.save(results, output_path)

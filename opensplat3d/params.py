@@ -10,7 +10,7 @@ class ModelParams:
     images: str = "images"
     resolution: int = -1
     white_background: bool = False
-    data_device: str = "cuda"
+    data_device: str = "cuda:1"
     eval: bool = False
     test_hold: int | float = 8
     init_points: int = 100_000
@@ -72,6 +72,22 @@ class OptimizationParams:
     inst2d_from_iter: int = 0
 
     var_lambda: float = 0.0
+    lambda_erank: float = 0.0
+    lambda_thin: float = 0.0
+    
+    # Depth parameters
+    lambda_depth: float = 1
+    depth_loss_type: str = "l1"
+
+    # Advanced Pruning Suite (FeatureSLAM / LEGO-SLAM / OpenGS-SLAM)
+    lambda_c: float = 0.5  # Weight for color gradient in importance scoring
+    lambda_f: float = 0.5  # Weight for feature gradient in importance scoring
+    tau_dist: float = 0.1  # Spatial distance threshold for redundancy
+    tau_sim: float = 0.95  # CLIP similarity threshold for redundancy
+    theta_scale: float = 0.25  # Scale threshold for boundary conflict pruning
+
+    semantic_pruning_interval: int = 1000
+    semantic_pruning_percentile: float = 0.1
 
 
 @dataclass

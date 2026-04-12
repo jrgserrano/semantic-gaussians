@@ -1,12 +1,14 @@
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 
 from opensplat3d.data.blender_reader import BlenderReader
 from opensplat3d.data.colmap_loader import read_points3D_binary, read_points3D_text
 from opensplat3d.data.colmap_reader import ColmapReader
 from opensplat3d.data.nerfstudio_reader import NerfStudioReader
+from opensplat3d.data.replica_reader import ReplicaReader
 from opensplat3d.data.reader import Reader
 from opensplat3d.params import ModelParams
 from opensplat3d.utils.scene_utils import (
@@ -86,6 +88,37 @@ def read_scene_info(
             print(
                 f"Sampled {pcd.points.shape[0]}/{num_pts_pcd} points from the point cloud."
             )
+
+        # Load SAM instance labels if available
+        instances_path = path / "points3d_instances.npz"
+        if instances_path.exists() and not is_random:
+            try:
+                inst_data = np.load(instances_path)
+                inst_xyz = torch.from_numpy(inst_data["xyz"])   # (M, 3) – might differ from pcd
+                inst_ids = torch.from_numpy(inst_data["instance_id"])  # (M,)
+                # Match to the (possibly sampled) pcd by finding nearest neighbour in xyz
+                # Fast: build a set from rounded coords for exact-match when pcd == points3d.ply
+                pcd_np = pcd.points.numpy()
+                inst_xyz_np = inst_xyz.numpy()
+                # Round to 4 decimal places to handle float precision
+                coord_to_id = {
+                    tuple(np.round(row, 4)): int(iid)
+                    for row, iid in zip(inst_xyz_np, inst_ids.numpy())
+                }
+                matched = np.array([
+                    coord_to_id.get(tuple(np.round(p, 4)), -1) for p in pcd_np
+                ], dtype=np.int32)
+                pcd = BasicPointCloud(
+                    points=pcd.points,
+                    colors=pcd.colors,
+                    normals=pcd.normals,
+                    instance_ids=torch.from_numpy(matched),
+                )
+                n_labelled = (matched >= 0).sum()
+                print(f"Instance labels loaded: {n_labelled}/{len(matched)} points labelled "
+                      f"({len(np.unique(matched[matched>=0]))} unique instances).")
+            except Exception as e:
+                print(f"Warning: could not load instance labels from {instances_path}: {e}")
     except Exception:
         pcd = None
 
@@ -122,6 +155,16 @@ def load_scene_info(model_params: ModelParams, progbar: bool = True) -> SceneInf
     elif (source_path / "transforms.json").exists():
         print("Found transforms.json file, assuming NeRFStudio data set!")
         reader = NerfStudioReader(source_path, model_params.images, **kwargs)
+    elif (source_path / "traj.txt").exists():
+        print("Found traj.txt file, assuming Replica data set!")
+        reader = ReplicaReader(
+            source_path,
+            num_frames=kwargs.get("num_frames", -1),
+            nth_frames=kwargs.get("nth_frames", -1),
+            frames_dist=kwargs.get("frames_dist", "uniform"),
+            mask_subdir=kwargs.get("mask_subdir", None),
+            mask_level=kwargs.get("mask_level", "default"),
+        )
     else:
         assert False, "Could not recognize scene type!"
 

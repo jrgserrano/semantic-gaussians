@@ -1,3 +1,10 @@
+import os
+import sys
+
+# Force use of only GPU 0 (RTX 3060 Ti) to avoid multi-GPU context/memory issues with TITAN X
+if "CUDA_VISIBLE_DEVICES" not in os.environ:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 import typing
 from pathlib import Path
 
@@ -16,7 +23,13 @@ from opensplat3d.language import LanguageModel
 from opensplat3d.language.embed import embed
 from opensplat3d.semantic.descriptions import compute_descriptions, CropParams
 from opensplat3d.utils.setup_utils import SetupParams
-from opensplat3d.losses import instance_2d_loss, l1_loss, ssim
+from opensplat3d.losses import (
+    get_erank_loss,
+    get_thinness_loss,
+    instance_2d_loss,
+    l1_loss,
+    ssim,
+)
 from opensplat3d.params import ModelParams, OptimizationParams, PipeParams
 from opensplat3d.scene import Scene
 from opensplat3d.utils.general_utils import seed_everything
@@ -33,6 +46,10 @@ def training(
     test_iterations: list[int],
     checkpoint_path: Path | None = None,
 ):
+    import torch._dynamo
+
+    torch._dynamo.config.suppress_errors = True
+
     # validate config, e.g. dimensions
     mask_dim = model_params.mask_dim
     assert mask_dim <= MAX_FEATURE_DIM, (
@@ -46,7 +63,9 @@ def training(
     scene_info = load_scene_info(model_params)
     save_scene_info(scene_info, model_path)
 
-    assert model_params.data_device == "cuda", "Only cuda is supported"
+    if model_params.data_device is None or model_params.data_device == "cuda:1":
+        model_params.data_device = "cuda:0"
+    
     device = torch.device(model_params.data_device)
 
     scene = Scene(scene_info, model_params.resolution, device)
@@ -117,6 +136,9 @@ def training(
     first_iter += 1
     viewpoint_cams = train_cameras(scene)
 
+    pruning_history = []
+    pruning_log_path = model_path / "pruning_log.json"
+
     for iteration in range(first_iter, opt_params.iterations + 1):
         iter_start.record()  # type: ignore
 
@@ -130,6 +152,10 @@ def training(
         render_color = opt_params.photo_lambda > 0
         render_features = gaussians.get_features is not None and mask_dim > 0
         render_var = render_features and opt_params.var_lambda > 0
+
+        # Enable depth rendering if we have depth maps and lambda > 0
+        has_depth = hasattr(viewpoint_cam, "original_depth") and viewpoint_cam.original_depth is not None
+        render_depth = has_depth and opt_params.lambda_depth > 0
 
         bg = (
             torch.rand((3), device=device)
@@ -152,11 +178,18 @@ def training(
             bg_features=bg_features,
             render_color=render_color,
             render_features=render_features,
+            render_depth=render_depth,
             render_var=render_var,
         )
 
         rendered_features = render_pkg.features
         rendered_variance = render_pkg.variance
+        rendered_depth = render_pkg.depth
+
+        # Importance Tracking (FeatureSLAM)
+        # We need separate gradients for color and features
+        opacity_grad_rgb = None
+        opacity_grad_feat = None
 
         # Loss
         loss = torch.tensor(0.0, device=device)
@@ -177,6 +210,14 @@ def training(
             assert rendered_features is not None, (
                 "Features are required if optimizing features only"
             )
+
+        # Depth Loss
+        depth_loss: torch.Tensor | None = None
+        if render_depth and rendered_depth is not None and has_depth:
+            gt_depth = viewpoint_cam.original_depth.to(device)
+            # Match the dimensions since rendered_depth is 1xHxW and gt_depth is 1xHxW
+            depth_loss = l1_loss(rendered_depth, gt_depth)
+            loss += opt_params.lambda_depth * depth_loss
 
         # Variance loss
         var_loss: torch.Tensor | None = None
@@ -210,9 +251,40 @@ def training(
                 opt_params.inst2d_normalize,
             )
             loss_inst2d_end.record()  # type: ignore
-            loss += opt_params.inst2d_lambda * inst2d_loss["total"]
+            total_inst2d_loss = opt_params.inst2d_lambda * inst2d_loss["total"]
+            loss += total_inst2d_loss
+            
+            # Feature Component of Importance
+            try:
+                opacity_grad_feat = torch.autograd.grad(total_inst2d_loss, gaussians._opacity, retain_graph=True, allow_unused=True)[0]
+            except Exception:
+                pass
+
+        # Geometric losses (FeatureSLAM)
+        warmup_weight = max(0.0, min(1.0, 1 / max(1, iteration)))
+
+        erank_loss: torch.Tensor | None = None
+        if opt_params.lambda_erank > 0 and warmup_weight > 0:
+            erank_loss = get_erank_loss(gaussians.get_scaling)
+            loss += warmup_weight * opt_params.lambda_erank * erank_loss
+
+        thin_loss: torch.Tensor | None = None
+        if opt_params.lambda_thin > 0 and warmup_weight > 0:
+            thin_loss = get_thinness_loss(gaussians.get_scaling)
+            loss += warmup_weight * opt_params.lambda_thin * thin_loss
+
+            loss += warmup_weight * opt_params.lambda_thin * thin_loss
+
+        # RGB Component of Importance
+        if Ll1 is not None and not only_features:
+            try:
+                opacity_grad_rgb = torch.autograd.grad(opt_params.photo_lambda * photometric_loss, gaussians._opacity, retain_graph=True, allow_unused=True)[0]
+            except Exception:
+                pass
 
         loss.backward()
+
+        optimizer.add_importance_stats(opacity_grad_rgb, opacity_grad_feat, opt_params)
 
         iter_end.record()  # type: ignore
 
@@ -230,6 +302,12 @@ def training(
                         postfix["photo"] = f"{photometric_loss:.7f}"
                 if var_loss is not None:
                     postfix["var"] = f"{var_loss:.4e}"
+                if depth_loss is not None:
+                    postfix["depth"] = f"{depth_loss:.4e}"
+                if erank_loss is not None:
+                    postfix["erank"] = f"{erank_loss:.4e}"
+                if thin_loss is not None:
+                    postfix["thin"] = f"{thin_loss:.4e}"
                 progress_bar.set_postfix(postfix)
                 progress_bar.update(10)
 
@@ -244,6 +322,8 @@ def training(
                         "log": True,
                     },
                     "variance_loss": {"value": var_loss, "log": True},
+                    "erank_loss": {"value": erank_loss, "log": True},
+                    "thinness_loss": {"value": thin_loss, "log": True},
                 }
                 if inst2d_loss is not None:
                     for k, v in inst2d_loss.items():
@@ -325,6 +405,38 @@ def training(
                         scene.cameras_extent,
                         size_threshold,
                     )
+
+                    """
+                    if opt_params.semantic_pruning_interval > 0 and iteration % opt_params.semantic_pruning_interval == 0:
+                        # Schedule: p=10% early, p=30% after model is stable
+                        p = 0.1 if iteration < 3000 else 0.3
+                        stats = optimizer.semantic_pruning(p)
+                        stats["reason"] = "FeatureSLAM_Importance"
+                        stats["iteration"] = iteration
+                        pruning_history.append(stats)
+                        
+                        # LEGO-SLAM Redundancy check (every 2 intervals)
+                        if iteration % (opt_params.semantic_pruning_interval * 2) == 0:
+                            stats_lego = optimizer.redundancy_pruning(opt_params.tau_dist, opt_params.tau_sim)
+                            stats_lego["reason"] = "LEGOSLAM_Redundancy"
+                            stats_lego["iteration"] = iteration
+                            pruning_history.append(stats_lego)
+
+                        # OpenGS-SLAM Boundary check
+                        stats_ogs = optimizer.scale_guided_pruning(opt_params.theta_scale)
+                        stats_ogs["reason"] = "OpenGS_ScaleBoundary"
+                        stats_ogs["iteration"] = iteration
+                        pruning_history.append(stats_ogs)
+
+                        # Save Log
+                        import json
+                        with open(pruning_log_path, "w") as f:
+                            json.dump(pruning_history, f, indent=4)
+
+                        # Reset tracking after pruning
+                        optimizer.importance_accum.fill_(0)
+                        optimizer.denom.fill_(0)
+                    """
 
                 if iteration % opt_params.opacity_reset_interval == 0 or (
                     model_params.white_background
