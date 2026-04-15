@@ -2,12 +2,18 @@ model:
   eval: true
   init_points: 100000
   mask_subdir: sam
+  nth_frames: 5
 opt:
   densify_grad_threshold: 3.5e-4
   random_background: true
   random_background_features: true
   inst2d_lambda: 0.1
   var_lambda: 0.5
+  lambda_erank: 0.1
+  lambda_thin: 0.1
+  lambda_depth: 1
+  semantic_pruning_interval: 1000
+  semantic_pruning_percentile: 0.05
 cluster:
   enabled: true
   min_size: 32
@@ -21,6 +27,4 @@ lang:
   dynamic_ratio: true
 desc:
   enabled: true
-  vlm: "llava-hf/llava-1.5-7b-hf"
-  topk: 3
   debug: true

@@ -1,1 +1,0 @@
-/home/ubuntu/semantic-gaussians/.venv/lib/python3.10/site-packages/ipykernel_launcher.py --f=/run/user/1000/jupyter/runtime/kernel-v3a053c29c68470cfa894adc169cfbcbd1fc55951d.json

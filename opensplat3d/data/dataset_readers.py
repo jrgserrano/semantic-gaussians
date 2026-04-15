@@ -8,6 +8,7 @@ from opensplat3d.data.blender_reader import BlenderReader
 from opensplat3d.data.colmap_loader import read_points3D_binary, read_points3D_text
 from opensplat3d.data.colmap_reader import ColmapReader
 from opensplat3d.data.nerfstudio_reader import NerfStudioReader
+from opensplat3d.data.polycam_reader import PolycamReader
 from opensplat3d.data.replica_reader import ReplicaReader
 from opensplat3d.data.reader import Reader
 from opensplat3d.params import ModelParams
@@ -153,8 +154,25 @@ def load_scene_info(model_params: ModelParams, progbar: bool = True) -> SceneInf
         print("Found transforms_train.json file, assuming Blender data set!")
         reader = BlenderReader(source_path, model_params.white_background, **kwargs)
     elif (source_path / "transforms.json").exists():
-        print("Found transforms.json file, assuming NeRFStudio data set!")
-        reader = NerfStudioReader(source_path, model_params.images, **kwargs)
+        import json
+        with open(source_path / "transforms.json") as _f:
+            _meta = json.load(_f)
+        # NerfStudio/ScanNet++ format requires camera_model and separate test_frames.
+        # Polycam / Record3D / NeRF-style uses a single 'frames' list without camera_model.
+        if "camera_model" in _meta and "test_frames" in _meta:
+            print("Found transforms.json with camera_model, assuming NeRFStudio (ScanNet++) data set!")
+            reader = NerfStudioReader(source_path, model_params.images, **kwargs)
+        else:
+            print("Found transforms.json, assuming Polycam / NeRF-style data set!")
+            reader = PolycamReader(
+                source_path,
+                test_hold=model_params.test_hold,
+                mask_subdir=kwargs.get("mask_subdir"),
+                mask_level=kwargs.get("mask_level", "default"),
+                num_frames=kwargs.get("num_frames", -1),
+                nth_frames=kwargs.get("nth_frames", -1),
+                frames_dist=kwargs.get("frames_dist", "uniform"),
+            )
     elif (source_path / "traj.txt").exists():
         print("Found traj.txt file, assuming Replica data set!")
         reader = ReplicaReader(

@@ -259,21 +259,21 @@ def training(
                 opacity_grad_feat = torch.autograd.grad(total_inst2d_loss, gaussians._opacity, retain_graph=True, allow_unused=True)[0]
             except Exception:
                 pass
-
+        
+        """
         # Geometric losses (FeatureSLAM)
         warmup_weight = max(0.0, min(1.0, 1 / max(1, iteration)))
 
         erank_loss: torch.Tensor | None = None
         if opt_params.lambda_erank > 0 and warmup_weight > 0:
             erank_loss = get_erank_loss(gaussians.get_scaling)
-            loss += warmup_weight * opt_params.lambda_erank * erank_loss
+            # loss += warmup_weight * opt_params.lambda_erank * erank_loss
 
         thin_loss: torch.Tensor | None = None
         if opt_params.lambda_thin > 0 and warmup_weight > 0:
             thin_loss = get_thinness_loss(gaussians.get_scaling)
-            loss += warmup_weight * opt_params.lambda_thin * thin_loss
-
-            loss += warmup_weight * opt_params.lambda_thin * thin_loss
+            # loss += warmup_weight * opt_params.lambda_thin * thin_loss
+        """
 
         # RGB Component of Importance
         if Ll1 is not None and not only_features:
@@ -406,7 +406,6 @@ def training(
                         size_threshold,
                     )
 
-                    """
                     if opt_params.semantic_pruning_interval > 0 and iteration % opt_params.semantic_pruning_interval == 0:
                         # Schedule: p=10% early, p=30% after model is stable
                         p = 0.1 if iteration < 3000 else 0.3
@@ -436,7 +435,6 @@ def training(
                         # Reset tracking after pruning
                         optimizer.importance_accum.fill_(0)
                         optimizer.denom.fill_(0)
-                    """
 
                 if iteration % opt_params.opacity_reset_interval == 0 or (
                     model_params.white_background
@@ -461,7 +459,7 @@ def training(
                 torch.save(ckpt, ckpt_dir / f"{iteration}.pth")
 
     print(f"\nModel can be found at: {model_path}")
-    return gaussians
+    return gaussians, scene, device
 
 
 if __name__ == "__main__":
@@ -510,7 +508,7 @@ if __name__ == "__main__":
     test_iterations: list[int] = args.test_iterations
     checkpoint_path = Path(args.checkpoint) if args.checkpoint is not None else None
 
-    gaussians = training(
+    gaussians, scene, device = training(
         config.model,
         config.opt,
         config.pipe,

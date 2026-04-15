@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
 import torch
+import torch.nn.functional as F
 from PIL import Image
 from tqdm import tqdm
 import os
+import re
 
 from transformers import AutoProcessor, LlavaForConditionalGeneration, BitsAndBytesConfig
 
@@ -30,7 +32,7 @@ MODEL_ID = "gemma-3-27b-it"
 
 import time
 
-def call_gemini_robotics(prompt: str, images, config=None) -> str:
+def call_gemini(prompt: str, images, config=None) -> str:
     default_config = types.GenerateContentConfig(
         temperature=0.5,
     )
@@ -61,6 +63,69 @@ def call_gemini_robotics(prompt: str, images, config=None) -> str:
                 raise e
     return "Unidentified object."
 
+def load_embeddings(model_path: Path, lang_model_type: str) -> dict:
+    output_file = model_path / f"{lang_model_type}_embeddings.pth"
+    if not output_file.exists():
+        print(f"Embeddings file not found: {output_file}")
+        return None
+    print(f"Loading embeddings from: {output_file}")
+    return torch.load(output_file)
+
+def get_dynamic_expansion(mask_np):
+    h, w = mask_np.shape
+    area_ratio = np.sum(mask_np) / (h * w)
+    
+    if area_ratio < 0.005:
+        return 3.5
+    elif area_ratio > 0.2:
+        return 1.1
+    else:
+        t = (area_ratio - 0.005) / (0.2 - 0.005)
+        return 3.5 + t * (1.1 - 3.5)
+
+def crop_to_object(image_pil, mask_np, expansion_ratio=1.5):
+    if not np.any(mask_np):
+        return image_pil
+    
+    coords = np.argwhere(mask_np)
+    ymin, xmin = coords.min(axis=0)
+    ymax, xmax = coords.max(axis=0)
+    
+    width = xmax - xmin
+    height = ymax - ymin
+    
+    center_x, center_y = xmin + width / 2, ymin + height / 2
+    new_w, new_h = width * expansion_ratio, height * expansion_ratio
+    
+    left = max(0, int(center_x - new_w / 2))
+    top = max(0, int(center_y - new_h / 2))
+    right = min(image_pil.width, int(center_x + new_w / 2))
+    bottom = min(image_pil.height, int(center_y + new_h / 2))
+    
+    return image_pil.crop((left, top, right, bottom))
+
+def prepare_vlm_image(image: torch.Tensor, mask: torch.Tensor, darken=True, zoom=True):
+    mask_float = mask.float()
+    mask_np = mask.cpu().numpy()
+    
+    bg_image = image * 0.3 if darken else image
+    vis_image = image * mask_float + bg_image * (1 - mask_float)
+    
+    kernel = torch.ones(3, 3, device=image.device)
+    dilated_mask = (F.conv2d(mask_float.unsqueeze(0).unsqueeze(0), 
+                             kernel.unsqueeze(0).unsqueeze(0), padding=1) > 0).squeeze()
+    outline = dilated_mask & ~mask
+    if vis_image.shape[0] == 3: vis_image[0][outline] = 1.0
+    
+    img_np = (vis_image.permute(1, 2, 0).cpu().detach().numpy() * 255).astype('uint8')
+    pil_img = Image.fromarray(img_np)
+    
+    if zoom:
+        expansion = get_dynamic_expansion(mask_np)
+        pil_img = crop_to_object(pil_img, mask_np, expansion_ratio=expansion)
+        
+    return pil_img
+
 @dataclass
 class Stats:
     cam_idx: int
@@ -69,43 +134,103 @@ class Stats:
     label_count: int
     visible_count: int
 
+def find_best_views(instance_id, label_id, setup_params, pipe_params, bg, cameras, n_views=3, pred_threshold=0.2, labels=None):
+    """
+    Busca N vistas de alta calidad que sean lo más diversas posible geométricamente.
+    """
+
+    device = setup_params.device
+    label_mask = (labels == int(instance_id))
+    label_count = int(label_mask.sum().item())
+    
+    if label_count == 0: return []
+
+    all_stats = []
+    mask_color = torch.zeros(setup_params.gaussians.get_xyz.shape[0], 3, device=device)
+    mask_color[label_mask] = 1.0
+
+    for i, cam in enumerate(cameras):
+        render_pkg = render(cam, setup_params.gaussians, pipe_params, bg, 
+                            setup_params.model_params.sh_degree, override_color=mask_color)
+        
+        image = render_pkg.render.clamp(0, 1).permute(1, 2, 0)
+        pred_mask = image.mean(dim=-1) > pred_threshold
+        area = int(pred_mask.sum().item())
+        visible_pts = int((render_pkg.visibility_filter.cpu() & label_mask.cpu()).sum().item())
+        
+        v2w = cam.world_view_transform.inverse()
+        view_dir = v2w[2, :3].detach().clone() 
+        
+        all_stats.append({
+            'cam_idx': i,
+            'score': (visible_pts / label_count) * (area),
+            'view_dir': view_dir,
+            'pred_mask': pred_mask.cpu().numpy()
+        })
+    candidates = [s for s in all_stats if s['score'] > 0]
+    if not candidates: return []
+
+    candidates.sort(key=lambda x: x['score'], reverse=True)
+    
+    selected = [candidates[0]]
+    
+    pool = candidates[:len(candidates)//4]
+    if len(pool) < n_views: pool = candidates
+
+    for _ in range(n_views - 1):
+        best_diverse_cand = None
+        min_max_sim = 1.0
+
+        for cand in pool:
+            if any(c['cam_idx'] == cand['cam_idx'] for c in selected): continue
+            
+            max_sim = 0
+            for s in selected:
+                sim = F.cosine_similarity(cand['view_dir'].unsqueeze(0), s['view_dir'].unsqueeze(0)).item()
+                max_sim = max(max_sim, sim)
+            
+            if max_sim < min_max_sim:
+                min_max_sim = max_sim
+                best_diverse_cand = cand
+        
+        if best_diverse_cand:
+            selected.append(best_diverse_cand)
+
+    return selected
+
+def get_vlm_descriptions(instance_id, label, setup_params, pipe_params, bg, bg_color, prompt, cameras, labels, debug=False, debug_dir=None):
+
+    label_id = int(label.item())
+
+    diverse_views = find_best_views(instance_id, label_id, setup_params, pipe_params, bg, cameras, n_views=3, labels=labels)
+    if not diverse_views: return
+
+    images_for_vlm = []
+    
+    for view in diverse_views:
+        cam = cameras[view['cam_idx']]
+        real_render = render(cam, setup_params.gaussians, pipe_params, bg, 
+                             setup_params.model_params.sh_degree).render
+        mask = torch.from_numpy(view['pred_mask']).to(setup_params.device)
+        vlm_img = prepare_vlm_image(real_render, mask)
+
+        if debug:
+            label_debug_dir = debug_dir / str(label_id)
+            label_debug_dir.mkdir(parents=True, exist_ok=True)
+            vlm_img.save(label_debug_dir / f"view_{view['cam_idx']}.png")
+                
+        images_for_vlm.append(vlm_img)
+
+    raw_descriptions = call_gemini(prompt, images_for_vlm)
+    
+    return raw_descriptions
+
 @dataclass
 class VLMDebugInfo:
     label_id: int
     descriptions: list[str]
     similarity:list[float]
     selected_indices:list[int]
-
-import torchvision.transforms.functional as TF
-
-def apply_vlm_visualization(image: torch.Tensor, mask: torch.Tensor, darken: bool = True, red_outline: bool = True):
-    # image: (C, H, W) float [0, 1]
-    # mask: (H, W) bool
-    
-    # 1. Darken background
-    mask_float = mask.float()
-    if darken:
-        bg_image = image * 0.3
-    else:
-        bg_image = image
-        
-    # 2. Combine: object Original, background Darkened
-    vis_image = image * mask_float + bg_image * (1 - mask_float)
-    
-    # 3. Red outline
-    if red_outline:
-        import torch.nn.functional as F
-        kernel = torch.ones(3, 3, device=image.device)
-        dilated_mask = (F.conv2d(mask_float.unsqueeze(0).unsqueeze(0), kernel.unsqueeze(0).unsqueeze(0), padding=1) > 0).squeeze()
-        # the mask shape might be smaller due to conv2d, wait actually padding=1 ensures same shape
-        # let's be careful with bounds
-        outline = dilated_mask & ~mask
-        
-        vis_image[0][outline] = 1.0 # Red
-        vis_image[1][outline] = 0.0
-        vis_image[2][outline] = 0.0
-        
-    return vis_image
 
 @dataclass
 class VLM:
@@ -237,163 +362,90 @@ class VLM:
             torch.cuda.empty_cache()
 
         return descriptions
-        
 
-            
-
-
-def compute_ious(gt_mask: torch.Tensor, pred_mask: torch.Tensor):
-    ious = []
-    gt_labels = torch.unique(gt_mask)
-    gt_labels = gt_labels[gt_labels != -1]
-    for label in gt_labels:
-        intersection = (gt_mask == label) & pred_mask
-        union = (gt_mask == label) | pred_mask
-        iou = intersection.sum() / union.sum()
-        ious.append(iou)
-    return ious
-
-
-@torch.no_grad()
-def compute_view_stats(
-    render_params: RenderParams,
-    mask_color: torch.Tensor,
-    pred_threshold: float,
-    label_mask: torch.Tensor,
-    label_count: int,
-):
-    stats: list[Stats] = []
-    for i, cam in enumerate(render_params.cameras):
-        render_pkg = render(
-            cam,
-            render_params.gaussians,
-            render_params.pipe_params,
-            render_params.bg,
-            render_params.model_params.sh_degree,
-            override_color=mask_color,
-            render_features=False,
-        )
-        assert render_pkg.render is not None, "Rendered image is None"
-        image = render_pkg.render.clamp(0, 1).permute(1, 2, 0).contiguous()
-        pred_mask = image.mean(dim=-1) > pred_threshold
-        area = pred_mask.flatten().sum()
-
-        visible_count = (render_pkg.visibility_filter.cpu() & label_mask).sum()
-
-        stats.append(
-            Stats(
-                i,
-                pred_mask.cpu().numpy(),
-                int(area.cpu().item()),
-                label_count,
-                int(visible_count.item()),
-            )
-        )
-    return stats
-
-
-@torch.no_grad()
-def preprocess_crops(
-    render_params: RenderParams,
-    stats: list[Stats],
-    lang_model: LanguageModel | None,
-    crop_params: CropParams,
-    use_rendering: bool,
-):
-    all_crops: dict[str, tuple[list[torch.Tensor], list[torch.Tensor] | None]] = {}
-    for stat in stats:
-        pred_mask = torch.from_numpy(stat.pred_mask)
-        if use_rendering:
-            render_pkg = render(
-                render_params.cameras[stat.cam_idx],
-                render_params.gaussians,
-                render_params.pipe_params,
-                render_params.bg,
-                render_params.model_params.sh_degree,
-                render_features=False,
-            )
-            assert render_pkg.render is not None, "Rendered image is None"
-            image = render_pkg.render.clamp(0, 1).mul(255).to(dtype=torch.uint8).cpu()
-        else:
-            image = (
-                render_params.cameras[stat.cam_idx]
-                .original_image.clamp(0, 1)
-                .mul(255)
-                .to(dtype=torch.uint8)
-            )
-
-        old_expansion_ration = crop_params.expansion_ratio
-        area_ratio = stat.area / (image.shape[1] * image.shape[2])
-        if crop_params.dynamic_ratio:
-            expansion_ratio = (
-                crop_params.expansion_ratio if area_ratio < 0.0075 else 0.1
-            )
-        else:
-            expansion_ratio = crop_params.expansion_ratio
-
-        crop_params.expansion_ratio = expansion_ratio
-
-        crops: dict[str, tuple[torch.Tensor, torch.Tensor | None]] = {}
-        if crop_params.levels == 0:
-            if lang_model is not None:
-                assert lang_model.model_type == "masqclip", (
-                    "Non-crop mode only available for MasQClip"
-                )
-            crops_def, crop_masks_def = seg_pad_resize_masq(
-                image,
-                pred_mask.unsqueeze(0),
-                lang_model.img_size if lang_model is not None else crop_params.img_size,
-            )
-            crops["default"] = (
-                lang_model.preprocess_images(
-                    crops_def.permute(0, 2, 3, 1).contiguous().numpy()
-                ) if lang_model is not None else crops_def,
-                crop_masks_def,
-            )
-        else:
-            crops_def, crop_masks_def, _, _ = masks_to_crops(
-                image,
-                pred_mask.unsqueeze(0),
-                crop_params,
-                lang_model,
-            )
-            crops_def = crops_def.squeeze(0)
-            crop_masks_def = crop_masks_def.squeeze(0).unsqueeze(1)
-            crops["default"] = (
-                crops_def,
-                crop_masks_def if (lang_model is not None and lang_model.model_type == "masqclip") else (crop_masks_def if lang_model is None else None),
-            )
-
-        crop_params.expansion_ratio = old_expansion_ration
-
-        for name, crops_ in crops.items():
-            if name not in all_crops:
-                all_crops[name] = ([], [])
-            all_crops[name][0].append(crops_[0])
-            if crops_[1] is not None:
-                x = all_crops[name][1]
-                if x is not None:
-                    x.append(crops_[1])
-
-        for name, crops_ in all_crops.items():
-            if crops_[1] is not None and len(crops_[1]) == 0:
-                all_crops[name] = (crops_[0], None)
-
-    return {
-        name: (
-            torch.cat(crops_[0]),
-            torch.cat(crops_[1]) if crops_[1] is not None else None,
-        )
-        for name, crops_ in all_crops.items()
-    }
-
-def load_embeddings(model_path: Path, lang_model_type: str) -> dict:
-    output_file = model_path / f"{lang_model_type}_embeddings.pth"
-    if not output_file.exists():
-        print(f"Embeddings file not found: {output_file}")
+def calculate_vlm_similarity(instance_id, descriptions, setup_params, lang_model):
+    model_path = setup_params.model_path
+    device = setup_params.device
+    
+    emb_path = model_path / f"{lang_model.model_type}_embeddings.pth"
+    if not emb_path.exists():
+        print(f"Error: No se encontró el archivo de embeddings en {emb_path}")
         return None
-    print(f"Loading embeddings from: {output_file}")
-    return torch.load(output_file)
+    
+    emb_data = torch.load(emb_path, map_location=device)
+    all_inst_embeddings = torch.from_numpy(emb_data["embeddings"]).to(device)
+    
+    labels = torch.from_numpy(np.load(model_path / "clustering" / "labels.npy"))
+    unique_labels = labels.unique()
+    unique_labels = unique_labels[unique_labels != -1]
+    
+    try:
+        inst_idx = (unique_labels == int(instance_id)).nonzero(as_tuple=True)[0].item()
+        instance_embedding = all_inst_embeddings[inst_idx]
+    except (ValueError, IndexError):
+        print(f"Error: No hay un embedding guardado para la instancia {instance_id}")
+        return None
+
+    raw_respuestas = [line.strip() for line in re.findall(r'\d\.\s*(.*)', descriptions)]
+
+    if not raw_respuestas:
+        raw_respuestas = [l.strip() for l in descriptions.split('\n') if len(l.strip()) > 5]
+    
+    if not raw_respuestas:
+        raw_respuestas = [descriptions]
+
+    parsed_respuestas = []
+    for r in raw_respuestas:
+        if ":" in r:
+            desc_part, id_part = r.rsplit(":", 1)
+            parsed_respuestas.append({"desc": desc_part.strip(), "id": id_part.strip()})
+        else:
+            parsed_respuestas.append({"desc": r.strip(), "id": "unknown"})
+
+    formatted_texts = [lang_model.prompt_template.format(p["desc"]) for p in parsed_respuestas]
+
+    
+    with torch.no_grad():
+        text_embeddings = lang_model.embed_text(formatted_texts, normalize=True)
+        text_embeddings = text_embeddings.to(device)
+        
+        instance_embedding = instance_embedding / instance_embedding.norm(p=2, dim=-1, keepdim=True)
+        
+        similarities = (text_embeddings @ instance_embedding.unsqueeze(1)).squeeze(1)
+        
+        distances = 1.0 - similarities
+
+    results = []
+    for i, p in enumerate(parsed_respuestas):
+        sim = similarities[i].item()
+        dist = distances[i].item()
+        results.append({'desc': p['desc'], 'id': p['id'], 'sim': sim, 'dist': dist})
+
+        
+    return results
+
+
+def get_best_vlm_description(instance_id, descriptions, setup_params, lang_model, debug=False, debug_dir=None):
+    results = calculate_vlm_similarity(instance_id, descriptions, setup_params, lang_model)
+    
+    if not results:
+        return "No se pudo determinar la mejor descripción."
+
+    if debug:
+        label_debug_dir = debug_dir / str(instance_id)
+        label_debug_dir.mkdir(parents=True, exist_ok=True)
+        with open(label_debug_dir / "results.txt", "w") as f:
+            for r in results:
+                f.write(f"{r['desc']}: {r['sim']}\n")
+
+    best_option = min(results, key=lambda x: x['dist'])
+
+    if debug:
+        with open(label_debug_dir / "best_description.txt", "w") as f:
+            f.write(f"{best_option['desc']} ({best_option['id']}): {best_option['sim']}\n")
+
+    return best_option['desc'], best_option['sim'], best_option['id']
+
 
 @torch.no_grad()
 def compute_descriptions(
@@ -447,269 +499,75 @@ def compute_descriptions(
     )
 
     # vlm = VLM(vlm_model_id) # Disabled to use API only
-    # Base prompt (without <image> tags, handled by VLM class)
-    # The output must contain the name that best describes the object and its attributes (color, texture, shape, usage, etc.),
-    
+
     prompt = """
-    You will receive 3 images of the exact same target object at different zoom levels:
-    1) A full-scene context shot.
-    2) A medium distance shot.
-    3) An extreme close-up of the object.
+    You will receive 3 images of the exact same target object captured from 3 different viewpoints.
     
-    The target object is highlighted with a bright RED OUTLINE. To further help you focus, the rest of the room (outside the red outline) is slightly darkened.
-    Analyze the 3 images carefully. Identify and precisely describe the object inside the red outline.
+    The target object is highlighted with a bright RED OUTLINE in each image. To help you focus, the background outside the red outline is slightly darkened.
+    Analyze the 3 images carefully to understand the object's 3D shape and details. 
     
-    The output must contain ONLY the name that best describes the object, its attributes (color, texture, shape, text written on it, usage, etc.), and the room it is in. No conversing, no markdown formatting.
-    The description must make sense in the context of the room. The output format MUST be a single concise phrase.
+    Identify and describe the object inside the red outline. Focus only on the object's attributes: 
+    - Name or category of the object.
+    - Color, texture, and materials.
+    - Shape and dimensions.
+    - Any text, labels, or patterns written on it.
+    - Probable usage.
+
+    Do NOT mention the room, the scene, or the environment. No conversing, no markdown formatting.
+    
+    You must provide 3 possible candidate descriptions (hypotheses), each representing a valid interpretation of what the object could be and an identifier (one word) for each description.
+    
+    Output format: 
+    1. [First concise description]:[identifier]
+    2. [Second concise description]:[identifier]
+    3. [Third concise description]:[identifier]
     """
 
     results = {}
-    
-    # Global collection for best descriptions
-    all_best_descriptions = []
 
-    # Filter for top 100 largest clusters to speed up processing
+    # top 20 largest clusters to speed up processing
     label_sizes = []
     for idx, label in enumerate(unique_labels):
         if valid_mask[idx]:
             label_sizes.append((idx, (labels == label).sum().item()))
             
-    # Sort by size descending and keep top 100
+    # sort by size descending and keep top 20
     label_sizes.sort(key=lambda x: x[1], reverse=True)
-    top_100_indices = {x[0] for x in label_sizes[:20]}
+    top_20_indices = {x[0] for x in label_sizes[:20]}
     
     for idx in range(len(valid_mask)):
-        if idx not in top_100_indices:
+        if idx not in top_20_indices:
             valid_mask[idx] = False
             
     # unique_labels were computed from labels.unique() which are sorted
     for idx, label in enumerate(tqdm(unique_labels, desc="Generating VLM descriptions")):
         if not valid_mask[idx]:
             continue
-            
+
+        vlm_raw_descriptions = get_vlm_descriptions(idx, label, setup_params, pipe_params, bg, bg_color, prompt, cameras, labels, debug, debug_dir)
+
+        if not vlm_raw_descriptions:
+            print(f"No VLM descriptions generated for instance {idx}")
+            continue
+
+        best_description, best_sim, best_id = get_best_vlm_description(idx, vlm_raw_descriptions, setup_params, lang_model, debug, debug_dir)
+
         label_id = int(label.item())
-        label_mask = labels == label
-        mask_color = torch.zeros(setup_params.gaussians.get_xyz.shape[0], 3, device=setup_params.device)
-        mask_color[label_mask] = 1.0 # White mask
-
-        stats = compute_view_stats(
-            render_params,
-            mask_color,
-            pred_threshold,
-            label_mask,
-            int(label_mask.sum().item()),
-        )
-        
-        if not stats:
-            continue
-            
-        max_area = max([x.area for x in stats])
-        if max_area == 0:
-            continue
-
-        selected_stats = sorted(
-            stats,
-            key=lambda x: (x.visible_count / label_mask.sum().item()) * (x.area / max_area),
-            reverse=True,
-        )[:topk]
-
-        # We now focus exclusively on the best view
-        best_stat = selected_stats[0]
-
-        # Crop 1: Full-scene context crops (levels=0)
-        vlm_full_params = CropParams(
-            img_size=crop_params.img_size,
-            levels=0,
-            masked_crop=False,
-            expansion_ratio=crop_params.expansion_ratio,
-            dynamic_ratio=crop_params.dynamic_ratio,
-            alpha_blend=0.0,
-        )
-        crop_full_dict = preprocess_crops(
-            render_params, [best_stat], None, vlm_full_params, use_rendering
-        )
-
-        # Crop 2: Medium distance context crops (levels=1, expansion=3.0)
-        vlm_medium_params = CropParams(
-            img_size=crop_params.img_size,
-            levels=1,
-            masked_crop=False,
-            expansion_ratio=3.0,
-            dynamic_ratio=False,
-            alpha_blend=0.0,
-        )
-        crop_medium_dict = preprocess_crops(
-            render_params, [best_stat], None, vlm_medium_params, use_rendering
-        )
-        
-        # Crop 3: Close-up zoom crops (levels=1, expansion=1.2)
-        vlm_close_params = CropParams(
-            img_size=crop_params.img_size,
-            levels=1,
-            masked_crop=False,
-            expansion_ratio=1.2,
-            dynamic_ratio=False,
-            alpha_blend=0.0,
-        )
-        crop_close_dict = preprocess_crops(
-            render_params, [best_stat], None, vlm_close_params, use_rendering
-        )
-
-        if "default" not in crop_full_dict or "default" not in crop_medium_dict or "default" not in crop_close_dict:
-            continue
-
-        raw_full, masks_full = crop_full_dict["default"]
-        raw_medium, masks_medium = crop_medium_dict["default"]
-        raw_close, masks_close = crop_close_dict["default"]
-        
-        # Apply visualization
-        vis_full_img = (apply_vlm_visualization(raw_full[0].float() / 255.0, masks_full[0].squeeze() > 0, darken=True, red_outline=True) * 255).byte()
-        vis_medium_img = (apply_vlm_visualization(raw_medium[0].float() / 255.0, masks_medium[0].squeeze() > 0, darken=True, red_outline=True) * 255).byte()
-        vis_close_img = (apply_vlm_visualization(raw_close[0].float() / 255.0, masks_close[0].squeeze() > 0, darken=False, red_outline=True) * 255).byte()
-        
-        # Pack the 3 views into a single array to send together to Gemini
-        vis_bundle = torch.stack([vis_full_img, vis_medium_img, vis_close_img])
-
-        lang_model.to('cpu')
-        torch.cuda.empty_cache()
-
-        # Bypass local VLM and use Google API: Pass all 3 scale images in ONE single request
-        images_list = []
-        for i in range(vis_bundle.shape[0]):
-            img = Image.fromarray(vis_bundle[i].permute(1, 2, 0).cpu().numpy())
-            images_list.append(img)
-            
-        try:
-            desc = call_gemini_robotics(prompt, images_list)
-            # Since there is only 1 best perspective now (which generated the 3 crops),
-            # we simply return a single description for this label, but keeping the loop
-            # structure so the rest of the script (similarity check) functions perfectly.
-            raw_descriptions = [desc]
-            # Hard limit timer to stay securely below 30 RPM (Free Tier)
-            time.sleep(2.1)
-        except Exception as e:
-            print(f"Gemini API error: {e}")
-            raw_descriptions = ["Unidentified object."]
-        
-        # Strip "Description: " prefix
-        descriptions = []
-        for desc in raw_descriptions:
-            if desc.startswith("Description:"):
-                desc = desc[len("Description:"):].strip()
-            descriptions.append(desc)
-            
-        lang_model.to('cuda')
-
-        # Calculate text embeddings for the descriptions using the same lang_model
-        with torch.no_grad():
-            formatted_descriptions = [lang_model.prompt_template.format(desc) for desc in descriptions]
-            text_embeds = lang_model.embed_text(formatted_descriptions, normalize=True)
-            text_embeds = text_embeds.to(dtype=embeddings.dtype)
-            
-            # Average multiple text embeddings and re-normalize
-            text_embedding = text_embeds.mean(dim=0)
-            text_embedding = text_embedding / text_embedding.norm(p=2, dim=-1, keepdim=True)
-            text_embedding = text_embedding.cpu().numpy()
-
-        # Calculate distances and similarities (moved outside debug to allow global tracking)
-        view_info = []
-        with torch.no_grad():
-            label_embedding_torch = embeddings[idx].to(text_embeds.device)
-            
-            # similarities via dot product (like in demo.py)
-            raw_sim = text_embeds @ label_embedding_torch.unsqueeze(1)
-            raw_sim = raw_sim.squeeze(1)
-            
-            cosine_distance = 1 - raw_sim
-            
-            # Rescale like in demo.py
-            sim = lang_model.rescale(raw_sim)
-            
-            # Penalize "Visual Noise" so it gets the lowest possible similarity
-            for i, desc in enumerate(descriptions):
-                if desc.lower() == "visual noise":
-                    sim[i] = -1000.0  # severely penalize visual noise
-
-        for i in range(len(descriptions)):
-            similarity_score = float(sim[i].cpu().item())
-            cos_dist = float(cosine_distance[i].cpu().item())
-            desc = descriptions[i]
-            view_info.append({"description": desc, "similarity": similarity_score, "cosine_distance": cos_dist})
-            
-        # Sort view_info by similarity descending so the best match is first
-        view_info.sort(key=lambda x: x["similarity"], reverse=True)
-        
-        if len(view_info) > 0:
-            best_info = view_info[0]
-            # Solo añadir si no es Visual Noise, o si es lo único que hay
-            all_best_descriptions.append({
-                "label_id": label_id,
-                "description": best_info["description"],
-                "similarity": best_info["similarity"],
-                "cosine_distance": best_info["cosine_distance"]
-            })
-
-        if debug:
-            label_debug_dir = debug_dir / str(label_id)
-            label_debug_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Save the 3 scale images
-            Image.fromarray(vis_bundle[0].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / "0_full_scene.png")
-            Image.fromarray(vis_bundle[1].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / "1_medium_distance.png")
-            Image.fromarray(vis_bundle[2].permute(1, 2, 0).cpu().numpy()).save(label_debug_dir / "2_extreme_close.png")
-            
-            # Save all info to a text file
-            with open(label_debug_dir / "info.txt", "w") as f:
-                for i, info in enumerate(view_info):
-                    f.write(f"Rank {i}:\n")
-                    f.write(f"  Similarity (CLIP): {info['similarity']:.4f}\n")
-                    f.write(f"  Cosine Distance: {info['cosine_distance']:.4f}\n")
-                    f.write(f"  Description: {info['description']}\n\n")
 
         results[label_id] = {
-            "descriptions": descriptions,
-            "embedding": embeddings[idx].numpy(),
-            "text_embedding": text_embedding,
-            "view_info": view_info if debug else None
+            "description": best_description,
+            "similarity": best_sim,
+            "identifier": best_id
         }
+
+        
         torch.cuda.empty_cache()
         
         # Iterative Auto-Save so we don't lose progress if interrupted
-        output_path = model_path / f"{lang_model.model_type}_descriptions.pth"
+        output_path = model_path / f"descriptions.pth"
         torch.save(results, output_path)
 
-    output_path = model_path / f"{lang_model.model_type}_descriptions.pth"
-    torch.save(results, output_path)
     print(f"\nDescriptions saved to: {output_path}")
-    
-    # Save the global summary file
-    summary_path = model_path / "vlm_best_descriptions_summary.txt"
-    with open(summary_path, "w") as f:
-        f.write("=== SUMMARY OF BEST DESCRIPTIONS ===\n\n")
-        
-        total_sim = 0.0
-        total_cos_dist = 0.0
-        
-        for item in all_best_descriptions:
-            f.write(f"Label ID: {item['label_id']}\n")
-            f.write(f"Description: {item['description']}\n")
-            f.write(f"Similarity (CLIP): {item['similarity']:.4f}\n")
-            f.write(f"Cosine Distance: {item['cosine_distance']:.4f}\n")
-            f.write("-" * 40 + "\n")
-            
-            total_sim += item["similarity"]
-            total_cos_dist += item["cosine_distance"]
-            
-        n_items = len(all_best_descriptions) if len(all_best_descriptions) > 0 else 1
-        avg_sim = total_sim / n_items
-        avg_cos_dist = total_cos_dist / n_items
-        
-        f.write("\n=== GLOBAL METRICS ===\n")
-        f.write(f"Total instances processed: {len(all_best_descriptions)}\n")
-        f.write(f"Average Similarity (CLIP): {avg_sim:.4f}\n")
-        f.write(f"Average Cosine Distance: {avg_cos_dist:.4f}\n")
-        
-    print(f"Global summary saved to: {summary_path}")
 
 if __name__ == "__main__":
     import argparse

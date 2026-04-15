@@ -213,7 +213,10 @@ def main(
         [
             x
             for x in image_dir.iterdir()
-            if x.is_file() and x.suffix.lower() in IMAGE_SUFFIXES and not x.name.startswith("depth")
+            if x.is_file()
+            and x.suffix.lower() in IMAGE_SUFFIXES
+            and not x.name.startswith("depth")   # Replica: depth0000.png
+            and ".depth." not in x.name           # Polycam: 0.depth.png
         ]
     )
     if nth_frames > 1:

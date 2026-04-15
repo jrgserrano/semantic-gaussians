@@ -142,6 +142,16 @@ class ViserViewer:
         self.cluster_colors: torch.Tensor | None = None
         self.pca_colors: torch.Tensor | None = None
         self.sorted_labels: torch.Tensor | None = None
+        self.bboxes = {}
+        bbox_path = model_path / "clustering" / "bboxes.pth"
+        if bbox_path.exists():
+            print(f"Loading bounding boxes from {bbox_path}")
+            self.bboxes = torch.load(bbox_path, weights_only=False)
+        else:
+            print(f"Bounding boxes not found at {bbox_path}")
+
+        self.bbox_handles = []
+        self.label_handles = []
         if self.gaussians.get_features is not None and self.labels is not None:
             features = self.gaussians.get_features.detach()[
                 ..., : setup_params.model_params.mask_dim
@@ -157,6 +167,7 @@ class ViserViewer:
                 .float()
                 .to(device)
             )
+            self.random_colors = random_colors
             cluster_color = random_colors[self.labels]
             cluster_color[self.labels == -1] = 0
             self.cluster_colors = cluster_color
@@ -222,6 +233,17 @@ class ViserViewer:
         def _(_: viser.GuiEvent[viser.GuiCheckboxHandle]):
             self.need_update = True
 
+        self.show_bboxes_checkbox = self.server.gui.add_checkbox(
+            "Show Bounding Boxes",
+            initial_value=False,
+            hint="Show bounding boxes for clusters",
+        )
+
+        @self.show_bboxes_checkbox.on_update
+        def _(_):
+            self.update_bbox_visualization()
+
+        self.vlm_descriptions = {}
         if self.labels is not None and self.sorted_labels is not None:
             vlm_descriptions = {}
             if language is not None:
@@ -230,9 +252,10 @@ class ViserViewer:
                     try:
                         desc_data = torch.load(desc_path, weights_only=False)
                         for k, v in desc_data.items():
-                            vlm_descriptions[k] = v["descriptions"][0]
+                            self.vlm_descriptions[k] = v["description"]
                     except Exception as e:
                         print(f"Could not load vlm semantic descriptions from {desc_path}: {e}")
+            vlm_descriptions = self.vlm_descriptions
 
             options = ["all"]
             if -1 in self.sorted_labels.tolist():
@@ -531,6 +554,82 @@ class ViserViewer:
             labels = self.labels[mask]
             self.click_selection_markdown.content = f"{labels.unique().cpu().numpy()}"
         self.need_update = True
+
+    def update_bbox_visualization(self):
+        # Clear existing
+        for h in self.bbox_handles:
+            h.remove()
+        for h in self.label_handles:
+            h.remove()
+        self.bbox_handles = []
+        self.label_handles = []
+
+        if not self.show_bboxes_checkbox.value:
+            return
+
+        def get_box_edges(min_pt, max_pt):
+            x0, y0, z0 = min_pt
+            x1, y1, z1 = max_pt
+            v = [
+                [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
+                [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]
+            ]
+            edges = [
+                (0, 1), (1, 2), (2, 3), (3, 0), # bottom
+                (4, 5), (5, 6), (6, 7), (7, 4), # top
+                (0, 4), (1, 5), (2, 6), (3, 7)  # vertical
+            ]
+            points = []
+            for e in edges:
+                points.append([v[e[0]], v[e[1]]])
+            return np.array(points)
+
+
+        for label_id, bbox in self.bboxes.items():
+            # If no description, use label ID
+            desc = self.vlm_descriptions.get(label_id, f"Cluster {label_id}")
+            
+            # Get color for this cluster
+            if self.random_colors is not None and label_id < self.random_colors.shape[0]:
+                color = (self.random_colors[label_id].cpu().numpy() * 255).astype(int)
+                color = tuple(map(int, color))
+            else:
+                color = (255, 0, 0)
+
+            # Add semi-transparent box
+            box_handle = self.server.scene.add_box(
+                name=f"bboxes/box_{label_id}",
+                position=np.array(bbox["center"]) * VISER_SCALE,
+                scale=np.array(bbox["size"]) * VISER_SCALE,
+                color=color,
+                opacity=0.3,
+            )
+            self.bbox_handles.append(box_handle)
+
+            # Add thick edges
+            edge_points = get_box_edges(bbox["min"], bbox["max"]) * VISER_SCALE
+            line_handle = self.server.scene.add_line_segments(
+                name=f"bboxes/edges_{label_id}",
+                points=edge_points,
+                colors=color,
+                line_width=4.0, # Thicker
+            )
+            self.bbox_handles.append(line_handle)
+
+
+            # Add label at the top of the box
+            label_pos = np.array(bbox["center"])
+            label_pos[1] -= bbox["size"][1] / 2 # -y is up
+            
+            label_handle = self.server.scene.add_label(
+                name=f"bboxes/label_{label_id}",
+                text=desc,
+                position=label_pos * VISER_SCALE,
+            )
+            self.label_handles.append(label_handle)
+
+
+
 
     @torch.no_grad()
     def handle_click(self, event: viser.ScenePointerEvent):
