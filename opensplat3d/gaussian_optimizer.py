@@ -106,6 +106,12 @@ class GaussianOptimizer:
         self.xyz_gradient_accum = torch.zeros((self.model.num_points, 1), device=device)
         self.importance_accum = torch.zeros((self.model.num_points, 1), device=device)
         self.denom = torch.zeros((self.model.num_points, 1), device=device)
+        self.feature_instability_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.rgb_error_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.semantic_error_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.fim_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.feature_delta_accum = 0.0
+        self.feature_delta_denom = 0
 
         params = []
         if not static_xyz:
@@ -238,6 +244,8 @@ class GaussianOptimizer:
         viewspace_point_tensor: torch.Tensor,
         visibility_filter: torch.Tensor,
         radii: torch.Tensor,
+        xyz_grad_rgb: torch.Tensor | None = None,
+        xyz_grad_sem: torch.Tensor | None = None,
     ):
         # Keep track of max radii in image-space for pruning
         self.max_radii2D[visibility_filter] = torch.max(
@@ -248,6 +256,24 @@ class GaussianOptimizer:
             dim=-1,
             keepdim=True,
         )
+        
+        if xyz_grad_rgb is not None:
+             self.rgb_error_accum[visibility_filter] += torch.norm(
+                xyz_grad_rgb[visibility_filter, :2],
+                dim=-1,
+                keepdim=True,
+            )
+        
+        if xyz_grad_sem is not None:
+             self.semantic_error_accum[visibility_filter] += torch.norm(
+                xyz_grad_sem[visibility_filter, :2],
+                dim=-1,
+                keepdim=True,
+            )
+
+        # Accumulate Fisher Information (squared gradients)
+        self.fim_accum[visibility_filter] += (viewspace_point_tensor.grad[visibility_filter, :2] ** 2).sum(dim=-1, keepdim=True)
+
         self.denom[visibility_filter] += 1
 
     def add_importance_stats(self, opacity_grad_rgb: torch.Tensor | None = None, opacity_grad_feat: torch.Tensor | None = None, opt: OptimizationParams | None = None):
@@ -262,6 +288,19 @@ class GaussianOptimizer:
         elif self.model._opacity.grad is not None:
             # Fallback to total gradient if components aren't provided
             self.importance_accum += torch.abs(self.model._opacity.grad)
+
+    @torch.no_grad()
+    def record_feature_delta(self, old_features: torch.Tensor, new_features: torch.Tensor):
+        """
+        Tracks the mean absolute change of Gaussian features between optimization steps.
+        Used as a diagnostic for convergence in semantic/instance space.
+        """
+        diff = (new_features - old_features).abs().mean(dim=-1, keepdim=True)
+        self.feature_instability_accum += diff
+        
+        delta = diff.mean().item()
+        self.feature_delta_accum += delta
+        self.feature_delta_denom += 1
 
     def update_model(self, optimizable_tensors: dict[str, torch.Tensor]):
         self.model._xyz = optimizable_tensors["xyz"]
@@ -284,6 +323,10 @@ class GaussianOptimizer:
         self.max_radii2D = self.max_radii2D[valid_points_mask]
         self.xyz_gradient_accum = self.xyz_gradient_accum[valid_points_mask]
         self.importance_accum = self.importance_accum[valid_points_mask]
+        self.feature_instability_accum = self.feature_instability_accum[valid_points_mask]
+        self.rgb_error_accum = self.rgb_error_accum[valid_points_mask]
+        self.semantic_error_accum = self.semantic_error_accum[valid_points_mask]
+        self.fim_accum = self.fim_accum[valid_points_mask]
         self.denom = self.denom[valid_points_mask]
 
     def densification_postfix(
@@ -317,6 +360,10 @@ class GaussianOptimizer:
         self.max_radii2D = torch.zeros((self.model.num_points), device=device)
         self.xyz_gradient_accum = torch.zeros((self.model.num_points, 1), device=device)
         self.importance_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.feature_instability_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.rgb_error_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.semantic_error_accum = torch.zeros((self.model.num_points, 1), device=device)
+        self.fim_accum = torch.zeros((self.model.num_points, 1), device=device)
         self.denom = torch.zeros((self.model.num_points, 1), device=device)
 
     def densify_and_clone(
@@ -513,14 +560,22 @@ class GaussianOptimizer:
         return {"pruned": num_pruned, "mean_metric": tau_dist}
 
     @torch.no_grad()
-    def scale_guided_pruning(self, theta_scale: float) -> dict:
+    def scale_guided_pruning(self, theta_scale: float, theta_ratio: float) -> dict:
         """
-        OpenGS-SLAM boundary pruning.
-        Removes Gaussians that are excessively large (often artifacts near boundaries).
+        OpenGS-SLAM boundary and anisotropy pruning.
+        Removes Gaussians that are excessively large or excessively thin/elongated.
         """
         scales = self.model.get_scaling
         max_scales = torch.max(scales, dim=1).values
-        prune_mask = max_scales > theta_scale
+        min_scales = torch.min(scales, dim=1).values
+        
+        # 1. Absolute size check
+        large_mask = max_scales > theta_scale
+        
+        # 2. Anisotropy (ratio) check
+        ratio_mask = (max_scales / (min_scales + 1e-7)) > theta_ratio
+        
+        prune_mask = torch.logical_or(large_mask, ratio_mask)
         
         num_pruned = prune_mask.sum().item()
         mean_val = max_scales[prune_mask].mean().item() if num_pruned > 0 else 0.0
@@ -529,3 +584,133 @@ class GaussianOptimizer:
             self.prune_points(prune_mask)
             
         return {"pruned": num_pruned, "mean_metric": mean_val}
+
+    @torch.no_grad()
+    def statistical_outlier_removal_pruning(self, K: int, std_ratio: float) -> dict:
+        """
+        Removes 'floaters' by checking the average distance to K-nearest neighbors.
+        If a point's mean distance is > (global_mean + std_ratio * global_std), it is pruned.
+        """
+        xyz = self.model.get_xyz
+        num_pts = xyz.shape[0]
+        if num_pts <= K:
+            return {"pruned": 0, "mean_metric": 0.0}
+
+        block_size = 1024
+        mean_dists = torch.zeros(num_pts, device=xyz.device)
+
+        # Chunked KNN search to stay within VRAM limits
+        for i in range(0, num_pts, block_size):
+            end = min(i + block_size, num_pts)
+            # Find nearest neighbors across the entire cloud
+            # (In practice, we use a sample if the cloud is millions of points, 
+            # but for Replica 100k-500k this is fine)
+            dists = torch.cdist(xyz[i:end], xyz)
+            # Exclude self (distance 0)
+            dists.fill_diagonal_(float("inf"))
+            
+            vals, _ = dists.topk(K, largest=False)
+            mean_dists[i:end] = vals.mean(dim=1)
+
+        global_mean = mean_dists.mean()
+        global_std = mean_dists.std()
+        threshold = global_mean + std_ratio * global_std
+
+        prune_mask = mean_dists > threshold
+        num_pruned = prune_mask.sum().item()
+
+        if num_pruned > 0:
+            self.prune_points(prune_mask)
+
+        return {"pruned": num_pruned, "mean_metric": threshold.item()}
+
+    def densify_and_split_by_instability(self, instability_weight: float, scene_extent: float):
+        """
+        Splits Gaussians that are semantically 'unstable' (frequently changing identity).
+        """
+        # Average instability per iteration
+        instability = self.feature_instability_accum / (self.denom + 1e-7)
+        
+        # We target the most unstable points (top 5% or based on weight)
+        # Weight scales the threshold relative to the mean instability
+        threshold = instability.mean() * (1.0 / (instability_weight + 1e-7))
+        
+        selected_pts_mask = (instability > threshold).squeeze()
+        # Further filter by size to prevent splitting tiny points
+        selected_pts_mask &= (torch.max(self.model.get_scaling, dim=1).values > 0.01 * scene_extent)
+        
+        if selected_pts_mask.any():
+            stds = self.model.get_scaling[selected_pts_mask]
+            means = torch.zeros((stds.size(0), 3), device="cuda")
+            samples = torch.normal(mean=means, std=stds)
+            rots = build_rotation(self.model._rotation[selected_pts_mask])
+            
+            new_xyz = (torch.bmm(rots, samples.unsqueeze(-1)).squeeze(-1) + 
+                       self.model.get_xyz[selected_pts_mask])
+            
+            # Decrease scaling for both the original and the new point
+            new_scaling = self.model.get_scaling[selected_pts_mask] / 1.6
+            self.model._scaling[selected_pts_mask] = torch.log(new_scaling)
+            self.model._rotation[selected_pts_mask] = self.model._rotation[selected_pts_mask]
+            
+            # Carry over features and other attributes
+            self.densification_postfix(
+                new_xyz, 
+                self.model._features_dc[selected_pts_mask], 
+                self.model._features_rest[selected_pts_mask],
+                self.model._opacity[selected_pts_mask],
+                torch.log(new_scaling),
+                self.model._rotation[selected_pts_mask],
+                self.model._features[selected_pts_mask] if self.model._features is not None else None
+            )
+            
+            return selected_pts_mask.sum().item()
+        return 0
+
+    def smart_refine(
+        self, 
+        iteration: int, 
+        opt: OptimizationParams, 
+        scene_extent: float,
+        w_rgb: float = 1.0,
+        w_sem: float = 2.0,
+        w_inst: float = 1.0
+    ):
+        """
+        Uses accumulated error diagnostics to perform prioritized densification and pruning.
+        """
+        device = self.denom.device
+        # 1. Calculate Combined Importance Score
+        # Normalize by denom (number of views seen)
+        valid_mask = (self.denom > 0).squeeze()
+        
+        avg_rgb = self.rgb_error_accum / (self.denom + 1e-7)
+        avg_sem = self.semantic_error_accum / (self.denom + 1e-7)
+        avg_inst = self.feature_instability_accum / (self.denom + 1e-7)
+        
+        # Combined score for densification
+        combined_score = (w_rgb * avg_rgb + w_sem * avg_sem + w_inst * avg_inst)
+        
+        # 2. Smart Densification (Splitting)
+        # We target a percentile of the most 'problematic' points
+        if iteration < opt.densify_until_iter:
+            # Combined score threshold based on distribution
+            threshold = combined_score[valid_mask].mean() * 1.5
+            self.densify_and_split(combined_score, threshold, scene_extent)
+
+        # 3. Smart Pruning (Targeting Semantic Floaters)
+        # Gaussians with high semantic error but very low RGB gradient contribution
+        # are likely floaters that mismatch the segments.
+        if iteration > opt.densify_from_iter:
+            # High semantic error AND low RGB influence
+            # We use 2x mean as a simple outlier detector
+            semantic_outlier_mask = (avg_sem > (2.0 * avg_sem[valid_mask].mean()))
+            low_rgb_mask = (avg_rgb < (0.5 * avg_rgb[valid_mask].mean()))
+            
+            prune_mask = (semantic_outlier_mask & low_rgb_mask).squeeze()
+            num_pruned = prune_mask.sum().item()
+            if num_pruned > 0:
+                self.prune_points(prune_mask)
+                print(f"[ SMART ] Pruned {num_pruned} semantic floaters at iter {iteration}")
+
+        return combined_score

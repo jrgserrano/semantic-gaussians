@@ -6,7 +6,7 @@ import imageio.v3 as iio
 import numpy as np
 import torch
 
-from opensplat3d.data.reader import Reader, sample
+from opensplat3d.data.reader import Reader, sample, split_hold
 from opensplat3d.utils.camera_utils import focal2fov, fov2focal
 from opensplat3d.utils.scene_utils import CameraInfo
 
@@ -27,6 +27,7 @@ class ReplicaReader(Reader[tuple[int, torch.FloatTensor]]):
     def __init__(
         self,
         path: Path,
+        test_hold: float | int = 8,
         images_subdir: str = "results",
         num_frames: int = -1,
         nth_frames: int = -1,
@@ -43,11 +44,10 @@ class ReplicaReader(Reader[tuple[int, torch.FloatTensor]]):
         # Combine index with c2w matrix for the data loader keys
         keys = list(enumerate(c2w_matrices))
 
-        # Train keys
-        train_keys = sample(keys, num_frames, nth_frames, frames_dist)
-
-        # For Replica without a specific split, let's keep test_keys empty or use identical for simplicity if not evaluating holding
-        super().__init__(train_keys=train_keys, test_keys=[])
+        # Train and test keys
+        all_keys = sample(keys, num_frames, nth_frames, frames_dist)
+        train_keys, test_keys = split_hold(all_keys, test_hold)
+        super().__init__(train_keys=train_keys, test_keys=test_keys)
 
     def read_camera(self, key: tuple[int, torch.FloatTensor]) -> CameraInfo:
         idx, c2w = key

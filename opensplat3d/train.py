@@ -22,7 +22,7 @@ from opensplat3d.gaussian_renderer import render
 from opensplat3d.language import LanguageModel
 from opensplat3d.language.embed import embed
 from opensplat3d.semantic.descriptions import compute_descriptions, CropParams
-from opensplat3d.utils.setup_utils import SetupParams
+from opensplat3d.utils.setup_utils import setup
 from opensplat3d.losses import (
     get_erank_loss,
     get_thinness_loss,
@@ -34,10 +34,77 @@ from opensplat3d.params import ModelParams, OptimizationParams, PipeParams
 from opensplat3d.scene import Scene
 from opensplat3d.utils.general_utils import seed_everything
 from opensplat3d.utils.scene_utils import save_scene_info
-from opensplat3d.utils.train_utils import setup_training, train_cameras, training_report
+from opensplat3d.utils.train_utils import (
+    FisherCameraSampler,
+    save_quality_heatmaps,
+    setup_training,
+    train_cameras,
+    training_report,
+)
+
+import numpy as np
+from opensplat3d.utils.general_utils import build_rotation
+
+def get_gt_normals(viewpoint_cam, device):
+    """Calcula el mapa de normales GT (World Space) desde la profundidad."""
+    depth = viewpoint_cam.original_depth.to(device)
+    h, w = depth.shape
+    fx = w / (2 * np.tan(viewpoint_cam.fovX / 2))
+    fy = h / (2 * np.tan(viewpoint_cam.fovY / 2))
+    cx, cy = w / 2, h / 2
+
+    i, j = torch.meshgrid(torch.linspace(0, w-1, w, device=device), 
+                          torch.linspace(0, h-1, h, device=device), indexing='xy')
+    
+    points = torch.stack([(i - cx) * depth / fx, (j - cy) * depth / fy, depth], dim=-1)
+    
+    dy = torch.zeros_like(points)
+    dx = torch.zeros_like(points)
+    dy[1:-1, :, :] = points[2:, :, :] - points[:-2, :, :]
+    dx[:, 1:-1, :] = points[:, 2:, :] - points[:, :-2, :]
+
+    normals = torch.nn.functional.normalize(torch.cross(dx, dy, dim=-1), dim=-1)
+    
+    # Pasar a World Space
+    R_c2w = viewpoint_cam.R.to(device)
+    normals_world = (R_c2w @ normals.view(-1, 3).T).T.view(h, w, 3)
+    return normals_world.permute(2, 0, 1) # (3, H, W)
+
+def render_normals(viewpoint_cam, gaussians, pipe, config, device):
+    """Renderiza el mapa de normales actual (World Space)."""
+    R = build_rotation(gaussians._rotation)
+    scales = gaussians.get_scaling
+    min_scale_idx = torch.argmin(scales, dim=1)
+    
+    normals = torch.gather(R, 2, min_scale_idx.view(-1, 1, 1).expand(-1, 3, 1)).squeeze(-1)
+    normal_colors = normals * 0.5 + 0.5 # Mapeo a [0, 1] para el renderizador
+    
+    bg = torch.tensor([0, 0, 0], dtype=torch.float32, device=device)
+    res = render(viewpoint_cam, gaussians, pipe, bg, config.model.sh_degree,
+                 config.model.sh_degree, override_color=normal_colors)
+    
+    # Devolver mapeado de vuelta a [-1, 1] para el cálculo del Loss
+    return res.render * 2.0 - 1.0
+
+def normal_consistency_loss(n_render, n_gt):
+    """
+    Calcula la pérdida de normales basada en similitud de coseno.
+    n_render: (3, H, W) en rango [-1, 1]
+    n_gt: (3, H, W) en rango [-1, 1]
+    """
+    # Producto escalar entre vectores normales (Cosine Similarity)
+    # 1.0 significa que apuntan al mismo sitio, -1.0 al contrario.
+    cos_sim = (n_render * n_gt).sum(dim=0)
+    
+    # Queremos que la similitud sea 1.0 (o -1.0 ya que la normal de un 'disco' es ambigua)
+    # Por eso usamos el valor absoluto de la similitud
+    loss = 1.0 - torch.abs(cos_sim)
+    
+    return loss.mean()
 
 
 def training(
+    config,
     model_params: ModelParams,
     opt_params: OptimizationParams,
     pipe_params: PipeParams,
@@ -60,6 +127,27 @@ def training(
         print(f"Using mask level: {model_params.mask_level}")
 
     model_path: Path = Path(model_params.model_path)
+    
+    # Initialize history tracking
+    history = {
+        "loss": [],
+        "psnr_test": [],
+        "psnr_train": [],
+        "ssim_test": [],
+        "ssim_train": [],
+        "miou_test": 0.0,
+        "mbiou_test": 0.0,
+        "miou_train": 0.0,
+        "mbiou_train": 0.0,
+        "feature_instability": [],
+    }
+    stats_path = model_path / "training_stats.json"
+
+    # Ensure PSNR is calculated every 1000 iterations
+    for i in range(1000, opt_params.iterations + 1, 1000):
+        if i not in test_iterations:
+            test_iterations.append(i)
+    test_iterations.sort()
     scene_info = load_scene_info(model_params)
     save_scene_info(scene_info, model_path)
 
@@ -134,7 +222,10 @@ def training(
         range(first_iter, opt_params.iterations), desc="Training progress"
     )
     first_iter += 1
-    viewpoint_cams = train_cameras(scene)
+    
+    # New: Active Learning Sampler
+    all_cameras = scene.get_train_cameras()
+    sampler = FisherCameraSampler(all_cameras)
 
     pruning_history = []
     pruning_log_path = model_path / "pruning_log.json"
@@ -147,7 +238,7 @@ def training(
         if iteration % 1000 == 0:
             optimizer.oneup_sh_degree()
 
-        viewpoint_cam = next(viewpoint_cams)
+        viewpoint_cam = sampler.sample()
 
         render_color = opt_params.photo_lambda > 0
         render_features = gaussians.get_features is not None and mask_dim > 0
@@ -218,6 +309,16 @@ def training(
             # Match the dimensions since rendered_depth is 1xHxW and gt_depth is 1xHxW
             depth_loss = l1_loss(rendered_depth, gt_depth)
             loss += opt_params.lambda_depth * depth_loss
+        
+        # Normal Consistency Loss
+        """
+        lambda_normal = 0.05
+
+        normals = render_normals(viewpoint_cam, gaussians, pipe_params, config, device)
+        normals_gt = get_gt_normals(viewpoint_cam, device)
+        loss_norm = normal_consistency_loss(normals, normals_gt)
+        loss += lambda_normal * loss_norm
+        """
 
         # Variance loss
         var_loss: torch.Tensor | None = None
@@ -260,19 +361,20 @@ def training(
             except Exception:
                 pass
         
-        """
         # Geometric losses (FeatureSLAM)
-        warmup_weight = max(0.0, min(1.0, 1 / max(1, iteration)))
+        
+        """
+        warmup_weight = min(1.0, iteration / 2000)
 
         erank_loss: torch.Tensor | None = None
-        if opt_params.lambda_erank > 0 and warmup_weight > 0:
+        if opt_params.lambda_erank > 0 and warmup_weight > 0 and iteration % 10 == 0:
             erank_loss = get_erank_loss(gaussians.get_scaling)
-            # loss += warmup_weight * opt_params.lambda_erank * erank_loss
+            loss += warmup_weight * opt_params.lambda_erank * erank_loss
 
         thin_loss: torch.Tensor | None = None
-        if opt_params.lambda_thin > 0 and warmup_weight > 0:
+        if opt_params.lambda_thin > 0 and warmup_weight > 0 and iteration % 10 == 0:
             thin_loss = get_thinness_loss(gaussians.get_scaling)
-            # loss += warmup_weight * opt_params.lambda_thin * thin_loss
+            loss += warmup_weight * opt_params.lambda_thin * thin_loss
         """
 
         # RGB Component of Importance
@@ -282,9 +384,38 @@ def training(
             except Exception:
                 pass
 
+        # Component-wise gradients for Smart Refinement
+        xyz_grad_rgb = None
+        xyz_grad_sem = None
+        
+        if not only_features and photometric_loss is not None:
+            try:
+                xyz_grad_rgb = torch.autograd.grad(opt_params.photo_lambda * photometric_loss, render_pkg.viewspace_points, retain_graph=True, allow_unused=True)[0]
+            except Exception:
+                pass
+        
+        if inst2d_loss is not None:
+            try:
+                xyz_grad_sem = torch.autograd.grad(opt_params.inst2d_lambda * inst2d_loss["total"], render_pkg.viewspace_points, retain_graph=True, allow_unused=True)[0]
+            except Exception:
+                pass
+
         loss.backward()
 
+        # Record loss history
+        history["loss"].append({"iter": iteration, "value": loss.item()})
+
+        optimizer.add_stats(render_pkg.viewspace_points, render_pkg.visibility_filter, render_pkg.radii, xyz_grad_rgb, xyz_grad_sem)
         optimizer.add_importance_stats(opacity_grad_rgb, opacity_grad_feat, opt_params)
+
+        # Update Smart Sampler Score using EIG approximation
+        # Surprise = (current_grad^2) / (accumulated_fim + eps)
+        with torch.no_grad():
+            visible_mask = render_pkg.visibility_filter
+            curr_grad2 = (render_pkg.viewspace_points.grad[visible_mask, :2] ** 2).sum(dim=-1, keepdim=True)
+            accum_fim = optimizer.fim_accum[visible_mask]
+            surprise = (curr_grad2 / (accum_fim + 0.01)).sum().item()
+            sampler.update_score(viewpoint_cam.uid, surprise)
 
         iter_end.record()  # type: ignore
 
@@ -304,10 +435,10 @@ def training(
                     postfix["var"] = f"{var_loss:.4e}"
                 if depth_loss is not None:
                     postfix["depth"] = f"{depth_loss:.4e}"
-                if erank_loss is not None:
-                    postfix["erank"] = f"{erank_loss:.4e}"
-                if thin_loss is not None:
-                    postfix["thin"] = f"{thin_loss:.4e}"
+                #if erank_loss is not None:
+                #    postfix["erank"] = f"{erank_loss:.4e}"
+                #if thin_loss is not None:
+                #    postfix["thin"] = f"{thin_loss:.4e}"
                 progress_bar.set_postfix(postfix)
                 progress_bar.update(10)
 
@@ -322,8 +453,8 @@ def training(
                         "log": True,
                     },
                     "variance_loss": {"value": var_loss, "log": True},
-                    "erank_loss": {"value": erank_loss, "log": True},
-                    "thinness_loss": {"value": thin_loss, "log": True},
+                    #"erank_loss": {"value": erank_loss, "log": True},
+                    #"thinness_loss": {"value": thin_loss, "log": True},
                 }
                 if inst2d_loss is not None:
                     for k, v in inst2d_loss.items():
@@ -336,7 +467,7 @@ def training(
                         }
 
                 # Log and save
-                training_report(
+                report_results = training_report(
                     iteration,
                     timings.get("iter", None),
                     Ll1,
@@ -348,7 +479,36 @@ def training(
                     background,
                     model_params.sh_degree,
                     optimizer.active_sh_degree,
+                    optimizer,
                 )
+
+                # Diagnostic Heatmaps
+                if iteration % 1000 == 0:
+                    try:
+                        viewpoint_report = scene.get_test_cameras()[0]
+                        render_report = render(viewpoint_report, gaussians, pipe_params, background, model_params.sh_degree, optimizer.active_sh_degree)
+                        save_quality_heatmaps(
+                            iteration, 
+                            model_path, 
+                            viewpoint_report.name, 
+                            render_report.render, 
+                            render_report.features, 
+                            viewpoint_report.original_image.cuda(), 
+                            viewpoint_report.masks.cuda() if viewpoint_report.masks is not None else None,
+                            model_params.mask_dim
+                        )
+                    except Exception as e:
+                        print(f"[ WARNING ] Diagnostic generation failed: {e}")
+
+                for key in ["psnr_test", "psnr_train", "ssim_test", "ssim_train", "feature_instability"]:
+                    if key in report_results:
+                        history[key].append({"iter": iteration, "value": report_results[key]})
+
+                # Periodically save history to file
+                if iteration % 1000 == 0 or iteration == opt_params.iterations:
+                    import json
+                    with open(stats_path, "w") as f:
+                        json.dump(history, f, indent=4)
 
             if iteration == opt_params.iterations:
                 progress_bar.close()
@@ -357,8 +517,25 @@ def training(
                 print(f"\n[ITER {iteration}] Saving Gaussians ({gaussians.num_points})")
                 save_gaussians(gaussians, model_path, iteration)
 
+            # --- Progressive Cooldown Logic ---
+            cooldown_start = 10000
+            cooldown_end = 18000
+            
+            # Linear progress factor (0.0 to 1.0)
+            cooldown_progress = max(0.0, min(1.0, (iteration - cooldown_start) / (cooldown_end - cooldown_start))) if iteration > cooldown_start else 0.0
+            
+            # Adaptive Intervals: Frequencies decrease as we cool down
+            # 100 -> 500
+            curr_densify_interval = int(opt_params.densification_interval * (1 + 4 * cooldown_progress))
+            # 1000 -> 3000
+            curr_prune_interval = int(opt_params.semantic_pruning_interval * (1 + 2 * cooldown_progress))
+            # 0.0002 -> 0.0006 (less sensitive)
+            curr_grad_threshold = opt_params.densify_grad_threshold * (1 + 2 * cooldown_progress)
+            # 0.05 -> 0.01 (less aggressive)
+            curr_percentile = opt_params.semantic_pruning_percentile * (1.0 - 0.8 * cooldown_progress)
+            
             # Densification
-            if iteration < opt_params.densify_until_iter:
+            if iteration < cooldown_end:
                 optimizer.add_stats(
                     render_pkg.viewspace_points,
                     render_pkg.visibility_filter,
@@ -367,7 +544,7 @@ def training(
 
                 if (
                     iteration > opt_params.densify_from_iter
-                    and iteration % opt_params.densification_interval == 0
+                    and iteration % curr_densify_interval == 0
                 ):
                     size_threshold = (
                         20 if iteration > opt_params.opacity_reset_interval else None
@@ -400,32 +577,50 @@ def training(
                         opacity_threshold = 0.005
 
                     optimizer.densify_and_prune(
-                        opt_params.densify_grad_threshold,
+                        curr_grad_threshold,
                         opacity_threshold,
                         scene.cameras_extent,
                         size_threshold,
                     )
 
-                    if opt_params.semantic_pruning_interval > 0 and iteration % opt_params.semantic_pruning_interval == 0:
-                        # Schedule: p=10% early, p=30% after model is stable
-                        p = 0.1 if iteration < 3000 else 0.3
-                        stats = optimizer.semantic_pruning(p)
-                        stats["reason"] = "FeatureSLAM_Importance"
-                        stats["iteration"] = iteration
-                        pruning_history.append(stats)
-                        
+                    # New: Semantic instability densification
+                    if opt_params.lambda_instability_densify > 0:
+                        num_split = optimizer.densify_and_split_by_instability(
+                            opt_params.lambda_instability_densify,
+                            scene.cameras_extent
+                        )
+                        if num_split > 0:
+                            print(f"\n[ITER {iteration}] Semantic Split: {num_split} points (Threshold: {curr_grad_threshold:.5f})")
+
+                    # Smart Refinement (New)
+                    optimizer.smart_refine(iteration, opt_params, scene.cameras_extent)
+
+                    if opt_params.semantic_pruning_interval > 0 and iteration % curr_prune_interval == 0:
                         # LEGO-SLAM Redundancy check (every 2 intervals)
                         if iteration % (opt_params.semantic_pruning_interval * 2) == 0:
                             stats_lego = optimizer.redundancy_pruning(opt_params.tau_dist, opt_params.tau_sim)
-                            stats_lego["reason"] = "LEGOSLAM_Redundancy"
+                            stats_lego["reason"] = "Redundancy"
                             stats_lego["iteration"] = iteration
                             pruning_history.append(stats_lego)
 
+                        # Semantic Importance Pruning (Percentile based)
+                        stats_sem = optimizer.semantic_pruning(curr_percentile)
+                        stats_sem["reason"] = "Semantic"
+                        stats_sem["iteration"] = iteration
+                        pruning_history.append(stats_sem)
+
                         # OpenGS-SLAM Boundary check
-                        stats_ogs = optimizer.scale_guided_pruning(opt_params.theta_scale)
-                        stats_ogs["reason"] = "OpenGS_ScaleBoundary"
+                        stats_ogs = optimizer.scale_guided_pruning(opt_params.theta_scale, opt_params.theta_ratio)
+                        stats_ogs["reason"] = "ScaleBoundary"
                         stats_ogs["iteration"] = iteration
                         pruning_history.append(stats_ogs)
+                        
+                        # New: Statistical Outlier Removal
+                        if opt_params.sor_interval > 0 and iteration % (curr_prune_interval * 2) == 0:
+                            stats_sor = optimizer.statistical_outlier_removal_pruning(opt_params.sor_k, opt_params.sor_std_ratio)
+                            stats_sor["reason"] = "SOR_Floaters"
+                            stats_sor["iteration"] = iteration
+                            pruning_history.append(stats_sor)
 
                         # Save Log
                         import json
@@ -444,7 +639,15 @@ def training(
 
             # Optimizer step
             if iteration < opt_params.iterations:
+                feat_old = None
+                if gaussians._features is not None:
+                    feat_old = gaussians._features.detach().clone()
+
                 optimizer.optimizer.step()
+
+                if feat_old is not None:
+                    optimizer.record_feature_delta(feat_old, gaussians._features)
+
                 optimizer.optimizer.zero_grad(set_to_none=True)
 
             if iteration in checkpoint_iterations:
@@ -459,7 +662,7 @@ def training(
                 torch.save(ckpt, ckpt_dir / f"{iteration}.pth")
 
     print(f"\nModel can be found at: {model_path}")
-    return gaussians, scene, device
+    return gaussians, scene, device, history
 
 
 if __name__ == "__main__":
@@ -508,7 +711,8 @@ if __name__ == "__main__":
     test_iterations: list[int] = args.test_iterations
     checkpoint_path = Path(args.checkpoint) if args.checkpoint is not None else None
 
-    gaussians, scene, device = training(
+    gaussians, scene, device, history = training(
+        config,
         config.model,
         config.opt,
         config.pipe,
@@ -536,6 +740,32 @@ if __name__ == "__main__":
             config.cluster.min_samples,
             config.cluster.eps,
         )
+        """
+        # Record mIoU and mBIoU metrics after clustering
+        print("Evaluating final semantic metrics (mIoU/mBIoU)...")
+        from opensplat3d.eval.instance_eval import evaluate_replica_instance_metrics
+        labels_path = output_dir / "labels.npy"
+        if labels_path.exists():
+            labels = torch.from_numpy(np.load(labels_path))
+            # Test metrics
+            miou_test, mbiou_test = evaluate_replica_instance_metrics(gaussians, scene, scene.get_test_cameras(), labels, device)
+            # Train metrics (subset for speed)
+            train_cameras_subset = [scene.get_train_cameras()[i] for i in range(0, len(scene.get_train_cameras()), 10)]
+            miou_train, mbiou_train = evaluate_replica_instance_metrics(gaussians, scene, train_cameras_subset, labels, device)
+            
+            history["miou_test"] = float(miou_test)
+            history["mbiou_test"] = float(mbiou_test)
+            history["miou_train"] = float(miou_train)
+            history["mbiou_train"] = float(mbiou_train)
+            
+            print(f"Final Test mIoU: {miou_test:.4f}, mBIoU: {mbiou_test:.4f}")
+            print(f"Final Train mIoU: {miou_train:.4f}, mBIoU: {mbiou_train:.4f}")
+
+        # Final save of stats
+        with open(stats_path, "w") as f:
+            import json
+            json.dump(history, f, indent=4)
+        """
 
         # language is based on clustering
         if config.lang.enabled:
@@ -566,14 +796,7 @@ if __name__ == "__main__":
                     config.lang.dynamic_ratio,
                     config.lang.alpha_blend,
                 )
-                setup_params = SetupParams(
-                    model_params=config.model,
-                    opt_params=config.opt,
-                    config=config,
-                    gaussians=gaussians,
-                    scene=scene,
-                    device=device,
-                )
+                setup_params = setup(model_path)
                 compute_descriptions(
                     setup_params,
                     lang_model,

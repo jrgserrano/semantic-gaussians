@@ -13,10 +13,14 @@ import wandb
 from opensplat3d.config import load_config, save_config, to_dict
 from opensplat3d.gaussian_model import GaussianModel
 from opensplat3d.gaussian_renderer import render
-from opensplat3d.losses import l1_loss
+from opensplat3d.losses import l1_loss, ssim
 from opensplat3d.params import PipeParams
 from opensplat3d.scene import Camera, Scene
 from opensplat3d.utils.metric_utils import psnr
+from opensplat3d.utils.loss_utils import get_mean_prototypes
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def setup_training(args: Namespace):
@@ -64,6 +68,41 @@ def train_cameras(scene: Scene):
             viewpoint_stack = scene.get_train_cameras().copy()
 
 
+class FisherCameraSampler:
+    """
+    Priority-based camera sampler that uses Fisher Information to select 
+    the next best view for training.
+    """
+    def __init__(self, cameras: list):
+        self.cameras = cameras
+        self.uids = [cam.uid for cam in cameras]
+        self.uid_to_idx = {cam.uid: i for i, cam in enumerate(cameras)}
+        # Start with uniform intensity
+        self.scores = torch.ones(len(cameras), dtype=torch.float32)
+
+    def sample(self) -> Camera:
+        # Use weighted random sampling. Higher score = higher probability.
+        # We use a soft-max style temperature to avoid ignoring easy views entirely
+        probabilities = self.scores / self.scores.sum()
+        idx = torch.multinomial(probabilities, 1).item()
+        return self.cameras[idx]
+
+    def update_score(self, uid: int, surprise_value: float):
+        if uid in self.uid_to_idx:
+            idx = self.uid_to_idx[uid]
+            clamped_surprise = torch.clamp(torch.tensor(surprise_value), min=0.01, max=50.0)
+            self.scores[idx] = 0.8 * self.scores[idx] + 0.2 * clamped_surprise
+            # Ensure scores don't drop to zero
+            self.scores[idx] = max(self.scores[idx], 0.01)
+
+    def get_stats(self):
+        return {
+            "max_score": self.scores.max().item(),
+            "min_score": self.scores.min().item(),
+            "mean_score": self.scores.mean().item(),
+        }
+
+
 class ValidationConfig(NamedTuple):
     name: str
     cameras: list[Camera]
@@ -81,7 +120,9 @@ def training_report(
     background: torch.Tensor,
     max_sh_degree: int,
     active_sh_degree: int,
+    optimizer: any = None,
 ):
+    report_metrics = {}
     if wandb.run is not None:
         log_dict = {
             "total_points": gaussians.num_points,
@@ -114,6 +155,13 @@ def training_report(
             step=iteration,
         )
 
+    if optimizer is not None and optimizer.feature_delta_denom > 0:
+        instability = optimizer.feature_delta_accum / optimizer.feature_delta_denom
+        report_metrics["feature_instability"] = instability
+        # Reset after reporting
+        optimizer.feature_delta_accum = 0.0
+        optimizer.feature_delta_denom = 0
+
     log_images = l1 is not None
 
     # Report test and samples of training set
@@ -129,11 +177,12 @@ def training_report(
                 ],
             ),
         )
-        for config in validation_configs:
-            if len(config.cameras) > 0:
+        for val_config in validation_configs:
+            if len(val_config.cameras) > 0:
                 l1_test = 0.0
                 psnr_test = 0.0
-                for idx, viewpoint in enumerate(config.cameras):
+                ssim_test = 0.0
+                for idx, viewpoint in enumerate(val_config.cameras):
                     render_pkg = render(
                         viewpoint,
                         gaussians,
@@ -148,7 +197,7 @@ def training_report(
                     if wandb.run is not None and idx < 5 and log_images:
                         wandb.log(
                             {
-                                f"{config.name}_view_{viewpoint.name}/render": [
+                                f"{val_config.name}_view_{viewpoint.name}/render": [
                                     wandb.Image(image)
                                 ],
                             },
@@ -157,7 +206,7 @@ def training_report(
                         if iteration == testing_iterations[0]:
                             wandb.log(
                                 {
-                                    f"{config.name}_view_{viewpoint.name}/ground_truth": [
+                                    f"{val_config.name}_view_{viewpoint.name}/ground_truth": [
                                         wandb.Image(gt_image)
                                     ],
                                 },
@@ -165,9 +214,75 @@ def training_report(
                             )
                     l1_test += l1_loss(image, gt_image).mean().double()
                     psnr_test += psnr(image, gt_image).mean().double()
-                psnr_test /= len(config.cameras)
-                l1_test /= len(config.cameras)
+                    ssim_test += ssim(image[None], gt_image[None]).mean().double()
+                psnr_test /= len(val_config.cameras)
+                ssim_test /= len(val_config.cameras)
+                l1_test /= len(val_config.cameras)
                 print(
-                    f"\n[ITER {iteration}] Evaluating {config.name}: L1 {l1_test} PSNR {psnr_test}"
+                    f"\n[ITER {iteration}] Evaluating {val_config.name}: L1 {l1_test} PSNR {psnr_test} SSIM {ssim_test}"
                 )
+                report_metrics[f"psnr_{val_config.name}"] = psnr_test.item()
+                report_metrics[f"ssim_{val_config.name}"] = ssim_test.item()
+                report_metrics[f"l1_{val_config.name}"] = l1_test.item()
         torch.cuda.empty_cache()
+    return report_metrics
+
+
+def save_quality_heatmaps(
+    iteration: int,
+    model_path: Path,
+    viewpoint_name: str,
+    rendered_image: torch.Tensor,
+    rendered_features: torch.Tensor,
+    gt_image: torch.Tensor,
+    gt_masks: torch.Tensor | None,
+    mask_dim: int,
+):
+    """
+    Saves RGB error and Semantic error heatmaps as images.
+    """
+    diag_dir = model_path / "diagnostics" / f"iter_{iteration}"
+    diag_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. RGB L1 Error Map
+    rgb_error = (rendered_image - gt_image).abs().mean(dim=0).cpu().numpy()
+    
+    plt.figure(figsize=(10, 8))
+    plt.imshow(rgb_error, cmap="magma")
+    plt.colorbar(label="L1 Error")
+    plt.title(f"RGB Error Map - {viewpoint_name}")
+    plt.savefig(diag_dir / f"{viewpoint_name}_rgb_error.png")
+    plt.close()
+
+    # 2. Semantic Consistency Map (if masks are available)
+    if gt_masks is not None and rendered_features is not None:
+        with torch.no_grad():
+            # Get mean prototypes for the rendered features using GT masks
+            # Since get_mean_prototypes assumes labels start from 1 (ignore -1)
+            # we need to handle labels correctly.
+            try:
+                prototypes, binary_gt, _ = get_mean_prototypes(rendered_features[:mask_dim], gt_masks)
+                # binary_gt is (I, H*W)
+                # prototypes is (I, C)
+                # Reconstruct full error map
+                C, H, W = rendered_features[:mask_dim].shape
+                flat_features = rendered_features[:mask_dim].flatten(1).T # (H*W, C)
+                
+                # For each pixel, find its prototype distance
+                # binary_gt has 1 where the pixel belongs to instance i
+                # We can do this efficiently:
+                # pixel_prototypes = binary_gt.T @ prototypes # (H*W, C)
+                pixel_prototypes = torch.matmul(binary_gt.transpose(0, 1).float(), prototypes) # (H*W, C)
+                
+                # Error is L2 distance in feature space
+                sem_error = (flat_features - pixel_prototypes).pow(2).sum(dim=-1).sqrt()
+                sem_error_map = sem_error.reshape(H, W).cpu().numpy()
+
+                plt.figure(figsize=(10, 8))
+                plt.imshow(sem_error_map, cmap="jet")
+                plt.colorbar(label="Feature L2 Distance")
+                plt.title(f"Semantic Error Map - {viewpoint_name}")
+                plt.savefig(diag_dir / f"{viewpoint_name}_semantic_error.png")
+                plt.close()
+            except Exception as e:
+                print(f"[ WARNING ] Failed to generate semantic heatmap: {e}")

@@ -59,7 +59,7 @@ def read_scene_info(
             # Since only COLMAP datasets have initialization points, we start with random points
             pcd = generate_random_point_cloud(
                 ply_path,
-                num_pts,
+                num_pts if num_pts > 0 else 100000,
                 nerf_normalization.radius,
                 -nerf_normalization.translate,
             )
@@ -77,7 +77,7 @@ def read_scene_info(
                 -nerf_normalization.translate,
                 save=False,
             )
-        if init_type == "sample":
+        if init_type == "sample" and num_pts > 0:
             num_pts_pcd = pcd.points.shape[0]
             if num_pts < num_pts_pcd:
                 rand_indices = torch.randperm(num_pts_pcd)[:num_pts]
@@ -177,6 +177,7 @@ def load_scene_info(model_params: ModelParams, progbar: bool = True) -> SceneInf
         print("Found traj.txt file, assuming Replica data set!")
         reader = ReplicaReader(
             source_path,
+            test_hold=model_params.test_hold,
             num_frames=kwargs.get("num_frames", -1),
             nth_frames=kwargs.get("nth_frames", -1),
             frames_dist=kwargs.get("frames_dist", "uniform"),

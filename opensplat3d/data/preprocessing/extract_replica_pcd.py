@@ -89,12 +89,17 @@ def main(args):
     all_rgb = np.concatenate(all_rgb, axis=0)
     
     num_points = all_xyz.shape[0]
-    target_points = min(args.max_points, num_points)
     
-    # if we have too many points, we choose them randomly to not overflow the VRAM
-    indices = np.random.choice(num_points, target_points, replace=False)
-    final_xyz = all_xyz[indices]
-    final_rgb = all_rgb[indices]
+    if args.max_points > 0 and args.max_points < num_points:
+        target_points = args.max_points
+        # if we have too many points, we choose them randomly to not overflow the VRAM
+        indices = np.random.choice(num_points, target_points, replace=False)
+        final_xyz = all_xyz[indices]
+        final_rgb = all_rgb[indices]
+    else:
+        target_points = num_points
+        final_xyz = all_xyz
+        final_rgb = all_rgb
     
     store_ply(out_ply, final_xyz, final_rgb)
     print(f"\nCloud intercepted and saved to: {out_ply}")
@@ -105,7 +110,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert Ground Truth Depth to Initial 3D PLY Cloud")
     parser.add_argument("dataset_path", type=str, help="Path to the dataset (ej: /home/ubuntu/datasets/Replica/room0)")
     parser.add_argument("--num_frames", type=int, default=15, help="Max number of sparse frames to process")
-    parser.add_argument("--max_points", type=int, default=100000, help="Budget for initial PLY cloud (def: 100k)")
+    parser.add_argument("--max_points", type=int, default=100000, help="Budget for initial PLY cloud")
     
     args = parser.parse_args()
     main(args)

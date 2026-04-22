@@ -516,6 +516,7 @@ def compute_descriptions(
     Do NOT mention the room, the scene, or the environment. No conversing, no markdown formatting.
     
     You must provide 3 possible candidate descriptions (hypotheses), each representing a valid interpretation of what the object could be and an identifier (one word) for each description.
+    The identifier must be a single word that is most descriptive of the object that will be used to name the object.
     
     Output format: 
     1. [First concise description]:[identifier]
@@ -533,7 +534,7 @@ def compute_descriptions(
             
     # sort by size descending and keep top 20
     label_sizes.sort(key=lambda x: x[1], reverse=True)
-    top_20_indices = {x[0] for x in label_sizes[:20]}
+    top_20_indices = {x[0] for x in label_sizes[:100]}
     
     for idx in range(len(valid_mask)):
         if idx not in top_20_indices:

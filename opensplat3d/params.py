@@ -35,7 +35,7 @@ class PipeParams:
 
 @dataclass
 class OptimizationParams:
-    iterations: int = 30_000
+    iterations: int = 20_000
     position_lr_init: float = 1.6e-4
     position_lr_final: float = 1.6e-6
     position_lr_delay_mult: float = 0.01
@@ -51,7 +51,7 @@ class OptimizationParams:
     densification_interval: int = 100
     opacity_reset_interval: int = 3000
     densify_from_iter: int = 500
-    densify_until_iter: int = 15_000
+    densify_until_iter: int = 18_000
     densify_grad_threshold: float = 2e-4
     random_background: bool = False
 
@@ -72,8 +72,8 @@ class OptimizationParams:
     inst2d_from_iter: int = 0
 
     var_lambda: float = 0.0
-    lambda_erank: float = 0.0
-    lambda_thin: float = 0.0
+    lambda_erank: float = 0.05  # Weight for isotropic regularization
+    lambda_thin: float = 0.01   # Weight for anisotropy regularization
     
     # Depth parameters
     lambda_depth: float = 1
@@ -82,12 +82,19 @@ class OptimizationParams:
     # Advanced Pruning Suite (FeatureSLAM / LEGO-SLAM / OpenGS-SLAM)
     lambda_c: float = 0.5  # Weight for color gradient in importance scoring
     lambda_f: float = 0.5  # Weight for feature gradient in importance scoring
-    tau_dist: float = 0.1  # Spatial distance threshold for redundancy
+    tau_dist: float = 0.05  # Spatial distance threshold for redundancy
     tau_sim: float = 0.95  # CLIP similarity threshold for redundancy
-    theta_scale: float = 0.25  # Scale threshold for boundary conflict pruning
+    theta_scale: float = 0.1  # Scale threshold for boundary conflict pruning
+    theta_ratio: float = 20.0 # Anisotropy ratio threshold for boundary pruning
 
     semantic_pruning_interval: int = 1000
     semantic_pruning_percentile: float = 0.1
+
+    # New advanced refinement parameters
+    lambda_instability_densify: float = 0.5  # Weight for instability-driven splits
+    sor_interval: int = 2000                 # Frequency of Statistical Outlier Removal
+    sor_k: int = 16                          # K neighbors for SOR
+    sor_std_ratio: float = 1.0               # Std ratio for SOR threshold
 
 
 @dataclass
