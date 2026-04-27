@@ -1,0 +1,29 @@
+model:
+  source_path: "/home/jsm15/datasets/astra_lab/astra_lab_0.db3"
+  model_path: "outputs/exp1_astra_lab"
+  eval: false
+  init_type: sample
+  init_points: 200000
+  num_frames: 400
+  nth_frames: 20
+  mask_subdir: "sam"
+  world_frame: "odom"
+  camera_frame: "astra_camera_color_optical_frame"
+opt:
+  iterations: 30000
+  lambda_depth: 0.5
+  lambda_erank: 0.02
+  lambda_thin: 0.02
+  densify_until_iter: 15000
+  densify_grad_threshold: 0.00015
+  random_background: true
+  random_background_features: true
+  inst2d_lambda: 0.1
+  var_lambda: 0.5
+cluster:
+  enabled: true
+  min_size: 32
+lang:
+  enabled: true
+  model: masqclip
+  topk: 5

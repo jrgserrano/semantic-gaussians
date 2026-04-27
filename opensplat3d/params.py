@@ -10,8 +10,13 @@ class ModelParams:
     images: str = "images"
     resolution: int = -1
     white_background: bool = False
-    data_device: str = "cuda:1"
+    data_device: str = "cuda"
     eval: bool = False
+
+    # ROS2 / TF Frames
+    world_frame: str = "odom"
+    camera_frame: str = "astra_camera_color_optical_frame"
+
     test_hold: int | float = 8
     init_points: int = 100_000
     init_type: str = "sample"  # random, points, sample
@@ -78,6 +83,8 @@ class OptimizationParams:
     # Depth parameters
     lambda_depth: float = 1
     depth_loss_type: str = "l1"
+    depth_min: float = 0.5  # Ignore depth values below this (Astra noise)
+    depth_max: float = 4.0  # Ignore depth values above this (Astra noise)
 
     # Advanced Pruning Suite (FeatureSLAM / LEGO-SLAM / OpenGS-SLAM)
     lambda_c: float = 0.5  # Weight for color gradient in importance scoring

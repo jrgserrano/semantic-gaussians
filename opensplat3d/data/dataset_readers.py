@@ -10,6 +10,7 @@ from opensplat3d.data.colmap_reader import ColmapReader
 from opensplat3d.data.nerfstudio_reader import NerfStudioReader
 from opensplat3d.data.polycam_reader import PolycamReader
 from opensplat3d.data.replica_reader import ReplicaReader
+from opensplat3d.data.ros2_reader import ROS2Reader
 from opensplat3d.data.reader import Reader
 from opensplat3d.params import ModelParams
 from opensplat3d.utils.scene_utils import (
@@ -41,10 +42,15 @@ def read_scene_info(
 
     nerf_normalization = get_nerf_pp_norm(train_cam_infos)
 
-    if (path / "sparse").exists():
+    if path.is_file():
+        ply_path = path.parent / f"{path.stem}_points3d.ply"
+    elif (path / "sparse").exists():
         ply_path = path / "sparse" / "0" / "points3D.ply"
+    else:
+        ply_path = path / "points3d.ply"
 
-        if not ply_path.exists():
+    if not ply_path.exists():
+        if (path / "sparse").exists():
             print(
                 "Converting point3d.bin to .ply, will happen only the first time you open the scene."
             )
@@ -53,9 +59,7 @@ def read_scene_info(
             except Exception:
                 xyz, rgb, _ = read_points3D_text(ply_path.with_suffix(".txt"))
             store_ply(ply_path, xyz, rgb)
-    else:
-        ply_path = path / "points3d.ply"
-        if not ply_path.exists():
+        else:
             # Since only COLMAP datasets have initialization points, we start with random points
             pcd = generate_random_point_cloud(
                 ply_path,
@@ -183,6 +187,27 @@ def load_scene_info(model_params: ModelParams, progbar: bool = True) -> SceneInf
             frames_dist=kwargs.get("frames_dist", "uniform"),
             mask_subdir=kwargs.get("mask_subdir", None),
             mask_level=kwargs.get("mask_level", "default"),
+        )
+    elif source_path.suffix == ".db3" or (source_path / "astra_lab_0.db3").exists():
+        print("Found ROS2 Bag, assuming ROS2 dataset!")
+        bag_file = source_path if source_path.suffix == ".db3" else (source_path / "astra_lab_0.db3")
+        
+        # Define intrinsics from user input
+        intrinsics = {
+            "fx": 516.4535522460938,
+            "fy": 516.4535522460938,
+            "cx": 332.4849548339844,
+            "cy": 242.23336791992188
+        }
+        
+        reader = ROS2Reader(
+            str(bag_file),
+            world_frame=model_params.world_frame,
+            camera_frame=model_params.camera_frame,
+            intrinsics=intrinsics,
+            num_frames=kwargs.get("num_frames", -1),
+            nth_frames=kwargs.get("nth_frames", -1),
+            mask_subdir=model_params.mask_subdir,
         )
     else:
         assert False, "Could not recognize scene type!"

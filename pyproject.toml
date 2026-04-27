@@ -49,6 +49,7 @@ dependencies = [
     "nvidia-cuda-nvrtc-cu12",
     "sam-2",
     "hdbscan>=0.8.42",
+    "rosbags"
 ]
 
 [project.optional-dependencies]

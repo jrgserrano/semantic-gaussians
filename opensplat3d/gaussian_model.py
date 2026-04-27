@@ -136,14 +136,20 @@ def create_from_pcd(
     print("Number of points at initialisation:", fused_point_cloud.size(0))
 
     assert fused_point_cloud.is_cuda, "point cloud points tensor is not on GPU"
-    dist2 = torch.clamp_min(distCUDA2(fused_point_cloud), 1e-7)
+    # The point clouds from the Astra robot can be quite sparse.
+    # We clamp the distance to prevent the initial Gaussians from being massive and covering the entire screen.
+    dist2 = torch.clamp(
+        distCUDA2(fused_point_cloud).float().to(device), min=0.0000001, max=0.0001
+    )
     scales = torch.log(torch.sqrt(dist2))[..., None].repeat(1, 3)
-    rots = torch.zeros((fused_point_cloud.size(0), 4), dtype=torch.float, device=device)
+    rots = torch.zeros((fused_point_cloud.shape[0], 4), device=device)
     rots[:, 0] = 1
 
+    # Revert to standard 3DGS 0.1 opacity. Huge opacities cause ray-blocking if scales are large.
     opacities = inverse_sigmoid(
-        0.1
-        * torch.ones((fused_point_cloud.size(0), 1), dtype=torch.float, device=device)
+        0.1 * torch.ones(
+            (fused_point_cloud.shape[0], 1), dtype=torch.float, device=device
+        )
     )
 
     model._xyz = nn.Parameter(fused_point_cloud, requires_grad=not static_xyz)

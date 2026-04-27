@@ -306,7 +306,6 @@ def training(
         depth_loss: torch.Tensor | None = None
         if render_depth and rendered_depth is not None and has_depth:
             gt_depth = viewpoint_cam.original_depth.to(device)
-            # Match the dimensions since rendered_depth is 1xHxW and gt_depth is 1xHxW
             depth_loss = l1_loss(rendered_depth, gt_depth)
             loss += opt_params.lambda_depth * depth_loss
         
@@ -362,7 +361,6 @@ def training(
                 pass
         
         # Geometric losses (FeatureSLAM)
-        
         """
         warmup_weight = min(1.0, iteration / 2000)
 
@@ -376,7 +374,6 @@ def training(
             thin_loss = get_thinness_loss(gaussians.get_scaling)
             loss += warmup_weight * opt_params.lambda_thin * thin_loss
         """
-
         # RGB Component of Importance
         if Ll1 is not None and not only_features:
             try:
@@ -485,7 +482,10 @@ def training(
                 # Diagnostic Heatmaps
                 if iteration % 1000 == 0:
                     try:
-                        viewpoint_report = scene.get_test_cameras()[0]
+                        if len(scene.get_test_cameras()) > 0:
+                            viewpoint_report = scene.get_test_cameras()[0]
+                        else:
+                            viewpoint_report = scene.get_train_cameras()[0]
                         render_report = render(viewpoint_report, gaussians, pipe_params, background, model_params.sh_degree, optimizer.active_sh_degree)
                         save_quality_heatmaps(
                             iteration, 

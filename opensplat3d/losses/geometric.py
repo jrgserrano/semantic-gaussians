@@ -14,7 +14,8 @@ def get_erank_loss(scaling: torch.Tensor, eps: float = 1e-8):
     erank = torch.exp(entropy)
     # Penalize low eRank (needle shapes). Low eRank = high penalty.
     # We want eRank to be closer to 3 (isotropic in 3D).
-    return -torch.log(erank - 1 + eps).mean()
+    # Clamp to prevent exploding gradients
+    return torch.clamp(-torch.log(erank - 1 + eps), min=0.0, max=10.0).mean()
 
 
 def get_thinness_loss(scaling: torch.Tensor, eps: float = 1e-8):
@@ -24,4 +25,5 @@ def get_thinness_loss(scaling: torch.Tensor, eps: float = 1e-8):
     """
     s_min = scaling.min(dim=-1)[0]
     # Minimize the inverse of the smallest scale to avoid vanishing thickness.
-    return (1.0 / (s_min + eps)).mean()
+    # Clamp to prevent exploding gradients
+    return torch.clamp(1.0 / (s_min + eps), max=100.0).mean()

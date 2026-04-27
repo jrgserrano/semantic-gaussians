@@ -596,21 +596,24 @@ class GaussianOptimizer:
         if num_pts <= K:
             return {"pruned": 0, "mean_metric": 0.0}
 
-        block_size = 1024
+        block_size = 128
         mean_dists = torch.zeros(num_pts, device=xyz.device)
 
         # Chunked KNN search to stay within VRAM limits
         for i in range(0, num_pts, block_size):
             end = min(i + block_size, num_pts)
             # Find nearest neighbors across the entire cloud
-            # (In practice, we use a sample if the cloud is millions of points, 
-            # but for Replica 100k-500k this is fine)
             dists = torch.cdist(xyz[i:end], xyz)
             # Exclude self (distance 0)
             dists.fill_diagonal_(float("inf"))
             
             vals, _ = dists.topk(K, largest=False)
             mean_dists[i:end] = vals.mean(dim=1)
+            
+            # Help PyTorch reclaim memory from the large dists tensor
+            del dists
+            if i % 1024 == 0:
+                torch.cuda.empty_cache()
 
         global_mean = mean_dists.mean()
         global_std = mean_dists.std()
@@ -635,7 +638,7 @@ class GaussianOptimizer:
         # Weight scales the threshold relative to the mean instability
         threshold = instability.mean() * (1.0 / (instability_weight + 1e-7))
         
-        selected_pts_mask = (instability > threshold).squeeze()
+        selected_pts_mask = (instability > threshold).reshape(-1)
         # Further filter by size to prevent splitting tiny points
         selected_pts_mask &= (torch.max(self.model.get_scaling, dim=1).values > 0.01 * scene_extent)
         
