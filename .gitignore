@@ -23,7 +23,7 @@ docs/build
 /slurm_ckpts
 /outputs
 
-submodules/simple-knn
+
 *.pt
 
 flash_4_configs.p

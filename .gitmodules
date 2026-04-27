@@ -1,6 +1,6 @@
 [submodule "submodules/simple-knn"]
 	path = submodules/simple-knn
-	url = https://github.com/camenduru/simple-knn.git
+	url = https://github.com/camenduru/simple-knn
 
 # [submodule "submodules/scannetpp"]
 # 	path = submodules/scannetpp
