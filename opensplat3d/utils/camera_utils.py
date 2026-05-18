@@ -20,15 +20,22 @@ def get_world2view(R: torch.FloatTensor, t: torch.FloatTensor) -> torch.FloatTen
 
 
 def get_projection_matrix(
-    znear: float, zfar: float, fovX: float, fovY: float
+    znear: float, zfar: float, fovX: float, fovY: float, cx: float = None, cy: float = None, W: float = None, H: float = None
 ) -> torch.FloatTensor:
     tanHalfFovY = math.tan(fovY / 2)
     tanHalfFovX = math.tan(fovX / 2)
 
-    top = tanHalfFovY * znear
-    bottom = -top
-    right = tanHalfFovX * znear
-    left = -right
+    # If cx/cy are provided, we use an asymmetric frustum
+    if cx is not None and cy is not None and W is not None and H is not None:
+        left = -tanHalfFovX * znear * (2 * cx / W)
+        right = tanHalfFovX * znear * (2 * (W - cx) / W)
+        top = tanHalfFovY * znear * (2 * cy / H)
+        bottom = -tanHalfFovY * znear * (2 * (H - cy) / H)
+    else:
+        top = tanHalfFovY * znear
+        bottom = -top
+        right = tanHalfFovX * znear
+        left = -right
 
     P: torch.FloatTensor = torch.zeros((4, 4), dtype=torch.float)  # type: ignore
 

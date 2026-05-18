@@ -34,6 +34,8 @@ def cat_tensors_to_optimizer(
 ):
     optimizable_tensors: dict[str, torch.Tensor] = {}
     for group in optimizer.param_groups:
+        if group["name"] not in tensors_dict:
+            continue
         assert len(group["params"]) == 1
         extension_tensor = tensors_dict[group["name"]]
         stored_state = optimizer.state.get(group["params"][0], None)
@@ -64,7 +66,12 @@ def cat_tensors_to_optimizer(
 
 def prune_optimizer(optimizer: torch.optim.Optimizer, mask: torch.BoolTensor):
     optimizable_tensors: dict[str, torch.Tensor] = {}
+
+    exclude_names = ["pose"]
+
     for group in optimizer.param_groups:
+        if group["name"] in exclude_names:
+            continue
         stored_state = optimizer.state.get(group["params"][0], None)
         if stored_state is not None:
             stored_state["exp_avg"] = stored_state["exp_avg"][mask]
@@ -596,24 +603,19 @@ class GaussianOptimizer:
         if num_pts <= K:
             return {"pruned": 0, "mean_metric": 0.0}
 
-        block_size = 128
+        block_size = 1024
         mean_dists = torch.zeros(num_pts, device=xyz.device)
 
-        # Chunked KNN search to stay within VRAM limits
         for i in range(0, num_pts, block_size):
             end = min(i + block_size, num_pts)
             # Find nearest neighbors across the entire cloud
             dists = torch.cdist(xyz[i:end], xyz)
-            # Exclude self (distance 0)
-            dists.fill_diagonal_(float("inf"))
             
-            vals, _ = dists.topk(K, largest=False)
-            mean_dists[i:end] = vals.mean(dim=1)
+            # Find K+1 nearest neighbors (first one is self with distance 0)
+            vals, _ = dists.topk(K + 1, largest=False)
+            mean_dists[i:end] = vals[:, 1:].mean(dim=1)
             
-            # Help PyTorch reclaim memory from the large dists tensor
             del dists
-            if i % 1024 == 0:
-                torch.cuda.empty_cache()
 
         global_mean = mean_dists.mean()
         global_std = mean_dists.std()

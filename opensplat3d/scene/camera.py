@@ -21,12 +21,15 @@ class Camera(nn.Module):
         alpha_mask: torch.FloatTensor | None,
         masks: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        cx: float | None = None,
+        cy: float | None = None,
+        normal: torch.Tensor | None = None,
     ) -> None:
         super().__init__()
         self.uid = uid
         self.name = name
-        self.R = R
-        self.T = T
+        self.register_buffer("R", R)
+        self.register_buffer("T", T)
         self.fovX = fovX
         self.fovY = fovY
         self.znear = 0.01
@@ -38,6 +41,9 @@ class Camera(nn.Module):
 
         self.masks = masks
         self.original_depth = depth
+        self.cx = cx
+        self.cy = cy
+        self.normal = normal
 
         if alpha_mask is not None:
             self.original_image *= alpha_mask
@@ -47,7 +53,8 @@ class Camera(nn.Module):
         self.world_view_transform: torch.Tensor = self.world_view_transform
 
         projection_matrix = get_projection_matrix(
-            znear=self.znear, zfar=self.zfar, fovX=fovX, fovY=fovY
+            znear=self.znear, zfar=self.zfar, fovX=fovX, fovY=fovY,
+            cx=cx, cy=cy, W=self.image_width, H=self.image_height
         ).transpose(0, 1)
         self.register_buffer("projection_matrix", projection_matrix)
         self.projection_matrix: torch.Tensor = self.projection_matrix
@@ -66,6 +73,25 @@ class Camera(nn.Module):
             "camera_center", self.world_view_transform.inverse()[3, :3]
         )
         self.camera_center: torch.Tensor = self.camera_center
+
+    def update_matrices(self):
+        # Recalculamos la matriz World-to-View (Vista)
+        world_view_transform = get_world2view(self.R, self.T).transpose(0, 1)
+        self.world_view_transform = world_view_transform.to(self.R.device)
+        # Recalculamos la matriz de Proyección (por si acaso han cambiado FOV o centro)
+        projection_matrix = get_projection_matrix(
+            znear=self.znear, zfar=self.zfar, fovX=self.fovX, fovY=self.fovY,
+            cx=self.cx, cy=self.cy, W=self.image_width, H=self.image_height
+        ).transpose(0, 1)
+        self.projection_matrix = projection_matrix.to(self.R.device)
+        # La matriz final es la combinación de ambas
+        self.full_proj_transform = (
+            self.world_view_transform.unsqueeze(0).bmm(
+                self.projection_matrix.unsqueeze(0)
+            )
+        ).squeeze(0)
+        # El centro de la cámara es la inversa de la vista
+        self.camera_center = self.world_view_transform.inverse()[3, :3]
 
 
 WARNED = False
@@ -136,6 +162,11 @@ def to_camera(
         depth_tensor = cam_info.depth.unsqueeze(0)
         gt_depth = depth_resizer(depth_tensor).squeeze(0)
 
+    gt_normal: torch.Tensor | None = None
+    if cam_info.normal is not None:
+        normal_resizer = Resize(new_resolution, interpolation=InterpolationMode.BILINEAR)
+        gt_normal = normal_resizer(cam_info.normal)
+
     return Camera(
         uid=cam_info.uid,
         name=cam_info.image_name,
@@ -147,6 +178,9 @@ def to_camera(
         alpha_mask=alpha_mask,
         masks=gt_masks,
         depth=gt_depth,
+        cx=cam_info.cx * (new_resolution[1] / orig_w) if cam_info.cx is not None else None,
+        cy=cam_info.cy * (new_resolution[0] / orig_h) if cam_info.cy is not None else None,
+        normal=gt_normal,
     )
 
 

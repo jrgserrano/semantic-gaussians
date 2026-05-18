@@ -11,6 +11,7 @@ from opensplat3d.data.nerfstudio_reader import NerfStudioReader
 from opensplat3d.data.polycam_reader import PolycamReader
 from opensplat3d.data.replica_reader import ReplicaReader
 from opensplat3d.data.ros2_reader import ROS2Reader
+from opensplat3d.data.scannet_reader import ScanNetReader
 from opensplat3d.data.reader import Reader
 from opensplat3d.params import ModelParams
 from opensplat3d.utils.scene_utils import (
@@ -124,7 +125,8 @@ def read_scene_info(
                       f"({len(np.unique(matched[matched>=0]))} unique instances).")
             except Exception as e:
                 print(f"Warning: could not load instance labels from {instances_path}: {e}")
-    except Exception:
+    except Exception as e:
+        print(f"Error loading point cloud: {e}")
         pcd = None
 
     return SceneInfo(
@@ -161,11 +163,25 @@ def load_scene_info(model_params: ModelParams, progbar: bool = True) -> SceneInf
         import json
         with open(source_path / "transforms.json") as _f:
             _meta = json.load(_f)
-        # NerfStudio/ScanNet++ format requires camera_model and separate test_frames.
-        # Polycam / Record3D / NeRF-style uses a single 'frames' list without camera_model.
-        if "camera_model" in _meta and "test_frames" in _meta:
-            print("Found transforms.json with camera_model, assuming NeRFStudio (ScanNet++) data set!")
-            reader = NerfStudioReader(source_path, model_params.images, **kwargs)
+        # Check for Astra-specific transforms, NeRFStudio or NerfCapture (iPhone)
+        is_astra_dir = (source_path / "depth").exists()
+        if "is_astra" in _meta or is_astra_dir:
+            from opensplat3d.data.astra_reader import AstraReader
+            print("Found Astra dataset (transforms.json + depth/), using AstraReader!")
+            reader = AstraReader(source_path, **kwargs)
+        elif "camera_model" in _meta and "test_frames" in _meta:
+                from opensplat3d.data.nerfstudio_reader import NerfStudioReader
+                print("Found transforms.json with camera_model, assuming NeRFStudio (ScanNet++) data set!")
+                reader = NerfStudioReader(source_path, model_params.images, **kwargs)
+        elif "depth_path" in _meta["frames"][0]:
+            from opensplat3d.data.nerfcapture_reader import NerfCaptureReader
+            print("Found transforms.json with depth paths, using NerfCaptureReader!")
+            reader = NerfCaptureReader(
+                source_path,
+                test_hold=model_params.test_hold,
+                resolution=model_params.resolution,
+                **kwargs,
+            )
         else:
             print("Found transforms.json, assuming Polycam / NeRF-style data set!")
             reader = PolycamReader(
@@ -208,6 +224,13 @@ def load_scene_info(model_params: ModelParams, progbar: bool = True) -> SceneInf
             num_frames=kwargs.get("num_frames", -1),
             nth_frames=kwargs.get("nth_frames", -1),
             mask_subdir=model_params.mask_subdir,
+        )
+    elif (source_path / "pose").exists() and (source_path / "intrinsic").exists():
+        print("Found pose and intrinsic directories, assuming ScanNet data set!")
+        reader = ScanNetReader(
+            source_path,
+            test_hold=model_params.test_hold,
+            **kwargs,
         )
     else:
         assert False, "Could not recognize scene type!"

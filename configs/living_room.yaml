@@ -1,0 +1,27 @@
+model:
+  source_path: "/home/ubuntu/datasets/living_room"
+  model_path: "outputs/living_room_iphone"
+  eval: false
+  init_type: ply
+  init_points: 100000
+  num_frames: -1
+  nth_frames: 1
+  mask_subdir: "sam"
+  resolution: 4
+
+opt:
+  iterations: 30000
+  densify_until_iter: 15000
+  densify_grad_threshold: 0.0002
+  opacity_reset_interval: 3000
+  random_background: true
+  lambda_depth: 0
+
+cluster:
+  enabled: true
+  min_size: 20
+
+lang:
+  enabled: true
+  model: masqclip
+  topk: 5

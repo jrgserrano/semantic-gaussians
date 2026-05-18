@@ -19,6 +19,8 @@ from opensplat3d.scene import Camera, Scene
 from opensplat3d.utils.metric_utils import psnr
 from opensplat3d.utils.loss_utils import get_mean_prototypes
 import torch.nn.functional as F
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 

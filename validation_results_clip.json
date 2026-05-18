@@ -1,0 +1,1940 @@
+[
+    {
+        "instance_key": "component_0",
+        "predicted_id_without_number": "component",
+        "best_iou": 0.2793043069083431,
+        "pred_coverage": 0.2793043069083431,
+        "gt_coverage": 1.0,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "wall-plug",
+        "matched_gt_id": 16,
+        "is_exact_match": false,
+        "semantic_similarity": 0.80712890625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "Small white rectangular electronic component with printed surface markings",
+            "similarity": 0.22029060125350952
+        }
+    },
+    {
+        "instance_key": "charm_1",
+        "predicted_id_without_number": "charm",
+        "best_iou": 0.001489203572840488,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.001489203572840488,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 43,
+        "is_exact_match": false,
+        "semantic_similarity": 0.81494140625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A small, oval-shaped metallic accessory or decorative piece",
+            "similarity": 0.19706963002681732
+        }
+    },
+    {
+        "instance_key": "rivet_2",
+        "predicted_id_without_number": "rivet",
+        "best_iou": 2.546355589551179e-05,
+        "pred_coverage": 1.0,
+        "gt_coverage": 2.546355589551179e-05,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "wall",
+        "matched_gt_id": 2,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7783203125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Circular metal fastener with a reflective surface and dark center",
+            "similarity": 0.26192787289619446
+        }
+    },
+    {
+        "instance_key": "button_3",
+        "predicted_id_without_number": "button",
+        "best_iou": 0.15350792227660137,
+        "pred_coverage": 0.15350792227660134,
+        "gt_coverage": 1.0,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "switch",
+        "matched_gt_id": 31,
+        "is_exact_match": false,
+        "semantic_similarity": 0.85693359375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A small white rectangular plastic cover with a central hole, likely a push-button.",
+            "similarity": 0.20564569532871246
+        }
+    },
+    {
+        "instance_key": "cap_4",
+        "predicted_id_without_number": "cap",
+        "best_iou": 0.2634961302957125,
+        "pred_coverage": 0.2634961302957125,
+        "gt_coverage": 1.0,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "wall-plug",
+        "matched_gt_id": 49,
+        "is_exact_match": false,
+        "semantic_similarity": 0.75390625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A small, beige rectangular plastic protective cap",
+            "similarity": 0.23927004635334015
+        }
+    },
+    {
+        "instance_key": "nightstand_6",
+        "predicted_id_without_number": "nightstand",
+        "best_iou": 0.25331808333147804,
+        "pred_coverage": 0.8851593135546036,
+        "gt_coverage": 0.2619264321569038,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "nightstand",
+        "matched_gt_id": 8,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A small, light-brown wooden furniture piece with storage drawers and a flat top",
+            "similarity": 0.2566928267478943
+        }
+    },
+    {
+        "instance_key": "ceilingtile_7",
+        "predicted_id_without_number": "ceilingtile",
+        "best_iou": 0.020509921309029372,
+        "pred_coverage": 0.7073048963121014,
+        "gt_coverage": 0.020685486546199807,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8857421875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A white rectangular acoustic panel installed in a suspended ceiling for noise reduction",
+            "similarity": 0.21021737158298492
+        }
+    },
+    {
+        "instance_key": "bedrail_9",
+        "predicted_id_without_number": "bedrail",
+        "best_iou": 0.021758787725754538,
+        "pred_coverage": 0.6175534057271995,
+        "gt_coverage": 0.02205599374576548,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "nightstand",
+        "matched_gt_id": 28,
+        "is_exact_match": false,
+        "semantic_similarity": 0.74169921875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A white, rectangular structural panel serving as the side support for a bed frame",
+            "similarity": 0.24114465713500977
+        }
+    },
+    {
+        "instance_key": "cover_10",
+        "predicted_id_without_number": "cover",
+        "best_iou": 0.1816743962130529,
+        "pred_coverage": 0.18167439621305292,
+        "gt_coverage": 1.0,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "wall-plug",
+        "matched_gt_id": 44,
+        "is_exact_match": false,
+        "semantic_similarity": 0.75830078125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "Small, white rectangular plastic protective cover or cap",
+            "similarity": 0.21532246470451355
+        }
+    },
+    {
+        "instance_key": "filament_11",
+        "predicted_id_without_number": "filament",
+        "best_iou": 1.753032796825533e-05,
+        "pred_coverage": 1.0,
+        "gt_coverage": 1.753032796825533e-05,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "wall",
+        "matched_gt_id": 21,
+        "is_exact_match": false,
+        "semantic_similarity": 0.69482421875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A fine, taut string or filament",
+            "similarity": 0.18496038019657135
+        }
+    },
+    {
+        "instance_key": "books_12",
+        "predicted_id_without_number": "books",
+        "best_iou": 0.30585238430292055,
+        "pred_coverage": 0.35617511354176284,
+        "gt_coverage": 0.6840210199754652,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "book",
+        "matched_gt_id": 19,
+        "is_exact_match": false,
+        "semantic_similarity": 0.98095703125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A small stack of blue-covered books with visible text on the spine",
+            "similarity": 0.27928319573402405
+        }
+    },
+    {
+        "instance_key": "shell_13",
+        "predicted_id_without_number": "shell",
+        "best_iou": 0.5900168844864604,
+        "pred_coverage": 0.5915686361362456,
+        "gt_coverage": 0.9955738501190871,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "undefined",
+        "matched_gt_id": 24,
+        "is_exact_match": false,
+        "semantic_similarity": 0.79931640625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "Translucent white organic sea shell featuring internal striations and a rounded shape",
+            "similarity": 0.262606143951416
+        }
+    },
+    {
+        "instance_key": "ceilingtile_14",
+        "predicted_id_without_number": "ceilingtile",
+        "best_iou": 0.0345353665452288,
+        "pred_coverage": 0.050791882861916014,
+        "gt_coverage": 0.09739337480556186,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 43,
+        "is_exact_match": false,
+        "semantic_similarity": 0.70703125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A flat, white rectangular ceiling insert for acoustic or aesthetic purposes",
+            "similarity": 0.27614825963974
+        }
+    },
+    {
+        "instance_key": "accesspanel_15",
+        "predicted_id_without_number": "accesspanel",
+        "best_iou": 0.029689117742952745,
+        "pred_coverage": 0.04095360705106991,
+        "gt_coverage": 0.09742314321224907,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 53,
+        "is_exact_match": false,
+        "semantic_similarity": 0.76123046875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A white rectangular panel serving as a ceiling maintenance access point",
+            "similarity": 0.24592643976211548
+        }
+    },
+    {
+        "instance_key": "basket_16",
+        "predicted_id_without_number": "basket",
+        "best_iou": 0.512503642855002,
+        "pred_coverage": 0.662397069700201,
+        "gt_coverage": 0.6937039497568283,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "blanket",
+        "matched_gt_id": 46,
+        "is_exact_match": false,
+        "semantic_similarity": 0.79443359375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A light brown woven storage container with a folded top edge",
+            "similarity": 0.2565229833126068
+        }
+    },
+    {
+        "instance_key": "vase_17",
+        "predicted_id_without_number": "vase",
+        "best_iou": 0.577895935116542,
+        "pred_coverage": 0.9921388097228238,
+        "gt_coverage": 0.5805542616559122,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "vase",
+        "matched_gt_id": 51,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white ceramic vessel with a textured diamond pattern on its surface",
+            "similarity": 0.26612260937690735
+        }
+    },
+    {
+        "instance_key": "ceilingtile_19",
+        "predicted_id_without_number": "ceilingtile",
+        "best_iou": 0.04671924675207375,
+        "pred_coverage": 0.04954019551943445,
+        "gt_coverage": 0.4506888216470238,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "vent",
+        "matched_gt_id": 33,
+        "is_exact_match": false,
+        "semantic_similarity": 0.75244140625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A flat white modular architectural ceiling tile",
+            "similarity": 0.2463359385728836
+        }
+    },
+    {
+        "instance_key": "lampshade_20",
+        "predicted_id_without_number": "lampshade",
+        "best_iou": 0.48436304986511614,
+        "pred_coverage": 0.9398433931339737,
+        "gt_coverage": 0.49986003658517064,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 52,
+        "is_exact_match": false,
+        "semantic_similarity": 0.93505859375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white cylindrical fabric shade designed to diffuse light from a lamp",
+            "similarity": 0.2369484007358551
+        }
+    },
+    {
+        "instance_key": "vase_21",
+        "predicted_id_without_number": "vase",
+        "best_iou": 0.2867909680026139,
+        "pred_coverage": 0.9743179353376187,
+        "gt_coverage": 0.2889754864234612,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 52,
+        "is_exact_match": false,
+        "semantic_similarity": 0.83935546875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A bulbous ivory porcelain vessel featuring artistic dark brushstroke decorations",
+            "similarity": 0.30747997760772705
+        }
+    },
+    {
+        "instance_key": "button_22",
+        "predicted_id_without_number": "button",
+        "best_iou": 0.1870048540239354,
+        "pred_coverage": 0.1870048540239354,
+        "gt_coverage": 1.0,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "wall-plug",
+        "matched_gt_id": 14,
+        "is_exact_match": false,
+        "semantic_similarity": 0.80712890625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "Small white plastic rectangular component with recessed circular features",
+            "similarity": 0.1879662722349167
+        }
+    },
+    {
+        "instance_key": "bedsideset_23",
+        "predicted_id_without_number": "bedsideset",
+        "best_iou": 0.18884586505555226,
+        "pred_coverage": 0.7509427999895774,
+        "gt_coverage": 0.20146406225431632,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "nightstand",
+        "matched_gt_id": 28,
+        "is_exact_match": false,
+        "semantic_similarity": 0.82080078125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A combined ensemble of a wooden storage chest and a decorative table lamp",
+            "similarity": 0.2874525189399719
+        }
+    },
+    {
+        "instance_key": "vent_24",
+        "predicted_id_without_number": "vent",
+        "best_iou": 0.2587331193665022,
+        "pred_coverage": 0.30923840837832645,
+        "gt_coverage": 0.613032273655065,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "vent",
+        "matched_gt_id": 30,
+        "is_exact_match": true,
+        "semantic_similarity": 0.99951171875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white square ceiling fixture featuring a slatted grill for HVAC airflow",
+            "similarity": 0.24367105960845947
+        }
+    },
+    {
+        "instance_key": "tissue_25",
+        "predicted_id_without_number": "tissue",
+        "best_iou": 0.020851381938323813,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.020851381938323813,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "nightstand",
+        "matched_gt_id": 28,
+        "is_exact_match": false,
+        "semantic_similarity": 0.73291015625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A crumpled piece of white disposable paper",
+            "similarity": 0.13200409710407257
+        }
+    },
+    {
+        "instance_key": "light_26",
+        "predicted_id_without_number": "light",
+        "best_iou": 0.031841297013404574,
+        "pred_coverage": 0.21217116073509285,
+        "gt_coverage": 0.036110756076253143,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.78759765625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A rectangular white fluorescent ceiling light panel for interior illumination",
+            "similarity": 0.15523317456245422
+        }
+    },
+    {
+        "instance_key": "light_28",
+        "predicted_id_without_number": "light",
+        "best_iou": 0.07035418710962428,
+        "pred_coverage": 0.08745943337695386,
+        "gt_coverage": 0.2645556735199968,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 43,
+        "is_exact_match": false,
+        "semantic_similarity": 0.92822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A bright white rectangular ceiling light fixture providing general illumination",
+            "similarity": 0.2103455364704132
+        }
+    },
+    {
+        "instance_key": "pillowcase_29",
+        "predicted_id_without_number": "pillowcase",
+        "best_iou": 0.29391282993520446,
+        "pred_coverage": 0.6735689279589526,
+        "gt_coverage": 0.342730984673259,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 7,
+        "is_exact_match": false,
+        "semantic_similarity": 0.94287109375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white fabric covering used to protect a pillow",
+            "similarity": 0.24406813085079193
+        }
+    },
+    {
+        "instance_key": "ornament_30",
+        "predicted_id_without_number": "ornament",
+        "best_iou": 0.1934626437519517,
+        "pred_coverage": 0.9695986603571094,
+        "gt_coverage": 0.19464333780630236,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 45,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8291015625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A decorative, irregularly shaped pottery orb with a glossy finish",
+            "similarity": 0.27548131346702576
+        }
+    },
+    {
+        "instance_key": "vent_31",
+        "predicted_id_without_number": "vent",
+        "best_iou": 0.03176802279322795,
+        "pred_coverage": 0.8828301860176484,
+        "gt_coverage": 0.031902532588844935,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7890625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A white rectangular plastic panel serving as a ceiling ventilation cover",
+            "similarity": 0.23742006719112396
+        }
+    },
+    {
+        "instance_key": "ceilingtile_32",
+        "predicted_id_without_number": "ceilingtile",
+        "best_iou": 0.02822788764899344,
+        "pred_coverage": 0.7167688139742644,
+        "gt_coverage": 0.028546300200261675,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8857421875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A rectangular white mineral fiber acoustic ceiling tile",
+            "similarity": 0.26400864124298096
+        }
+    },
+    {
+        "instance_key": "slat_34",
+        "predicted_id_without_number": "slat",
+        "best_iou": 0.00655785059416062,
+        "pred_coverage": 0.8728976999041546,
+        "gt_coverage": 0.0065641185798553684,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "floor",
+        "matched_gt_id": 1,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7861328125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Slim dark elongated material used as a furniture part",
+            "similarity": 0.19922490417957306
+        }
+    },
+    {
+        "instance_key": "tile_35",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.02008791932885122,
+        "pred_coverage": 0.7615751155304651,
+        "gt_coverage": 0.02021504949084184,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.77294921875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A flat white rectangular acoustic panel used in ceilings",
+            "similarity": 0.21809574961662292
+        }
+    },
+    {
+        "instance_key": "fixture_36",
+        "predicted_id_without_number": "fixture",
+        "best_iou": 0.40293815070163114,
+        "pred_coverage": 0.44645336981979594,
+        "gt_coverage": 0.8052211295309997,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 43,
+        "is_exact_match": false,
+        "semantic_similarity": 0.87646484375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A recessed square fluorescent lighting fixture",
+            "similarity": 0.2508671283721924
+        }
+    },
+    {
+        "instance_key": "sheet_38",
+        "predicted_id_without_number": "sheet",
+        "best_iou": 0.031864046738117616,
+        "pred_coverage": 0.6761744615307167,
+        "gt_coverage": 0.03235782571378145,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 39,
+        "is_exact_match": false,
+        "semantic_similarity": 0.86865234375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A smooth white fabric section visible between dark bedding layers",
+            "similarity": 0.20621879398822784
+        }
+    },
+    {
+        "instance_key": "bedcover_39",
+        "predicted_id_without_number": "bedcover",
+        "best_iou": 0.12508549561211246,
+        "pred_coverage": 0.2165210458863618,
+        "gt_coverage": 0.22851693248035967,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 18,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8798828125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A plain white cloth surface used as a bedding base",
+            "similarity": 0.24079854786396027
+        }
+    },
+    {
+        "instance_key": "leds_40",
+        "predicted_id_without_number": "leds",
+        "best_iou": 3.0468879306154067e-05,
+        "pred_coverage": 1.0,
+        "gt_coverage": 3.0468879306154067e-05,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "wall",
+        "matched_gt_id": 5,
+        "is_exact_match": false,
+        "semantic_similarity": 0.771484375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A linear sequence of embedded red warning diodes",
+            "similarity": 0.08274656534194946
+        }
+    },
+    {
+        "instance_key": "panel_41",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.07315089328930437,
+        "pred_coverage": 0.9945816282561071,
+        "gt_coverage": 0.07318005686302477,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "bed",
+        "matched_gt_id": 32,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7939453125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A fabric-covered white decorative furniture element with stud detailing",
+            "similarity": 0.2690284848213196
+        }
+    },
+    {
+        "instance_key": "diffuser_42",
+        "predicted_id_without_number": "diffuser",
+        "best_iou": 0.03632947547750605,
+        "pred_coverage": 0.03821564169166441,
+        "gt_coverage": 0.423987037671009,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 22,
+        "is_exact_match": false,
+        "semantic_similarity": 0.83203125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A rectangular white translucent cover that spreads overhead light",
+            "similarity": 0.19151991605758667
+        }
+    },
+    {
+        "instance_key": "panel_44",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.05102083714285908,
+        "pred_coverage": 0.10394223891584715,
+        "gt_coverage": 0.09108208655540338,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 43,
+        "is_exact_match": false,
+        "semantic_similarity": 0.75146484375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A white rectangular panel used for sound absorption in ceilings",
+            "similarity": 0.25735074281692505
+        }
+    },
+    {
+        "instance_key": "cushion_45",
+        "predicted_id_without_number": "cushion",
+        "best_iou": 0.24821289992521292,
+        "pred_coverage": 0.9458823767880802,
+        "gt_coverage": 0.2517886075891074,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 48,
+        "is_exact_match": false,
+        "semantic_similarity": 0.9580078125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white fabric rectangular cushion designed for lounging or decorative purposes on a bed",
+            "similarity": 0.2343789041042328
+        }
+    },
+    {
+        "instance_key": "paper_46",
+        "predicted_id_without_number": "paper",
+        "best_iou": 0.011585284855643151,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.011585284855643151,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 45,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8173828125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A small, bright white rectangular slip of paper",
+            "similarity": 0.22792275249958038
+        }
+    },
+    {
+        "instance_key": "cushion_47",
+        "predicted_id_without_number": "cushion",
+        "best_iou": 0.8974083959142964,
+        "pred_coverage": 0.9524458124828385,
+        "gt_coverage": 0.9395040512367049,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 13,
+        "is_exact_match": false,
+        "semantic_similarity": 0.9580078125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A soft blue ornamental cushion with a golden pattern",
+            "similarity": 0.24683287739753723
+        }
+    },
+    {
+        "instance_key": "pillow_49",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.8919426328989585,
+        "pred_coverage": 0.9419366811988685,
+        "gt_coverage": 0.9438362220681766,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 39,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A light-grey, rectangular fabric object used for head support during sleep",
+            "similarity": 0.2552835941314697
+        }
+    },
+    {
+        "instance_key": "tile_50",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.21433292270309917,
+        "pred_coverage": 0.3378255034248505,
+        "gt_coverage": 0.36961324835685777,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 43,
+        "is_exact_match": false,
+        "semantic_similarity": 0.76416015625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white rectangular sound-absorbing ceiling panel",
+            "similarity": 0.259807288646698
+        }
+    },
+    {
+        "instance_key": "sculpture_51",
+        "predicted_id_without_number": "sculpture",
+        "best_iou": 0.42989816805552034,
+        "pred_coverage": 0.4298981680555204,
+        "gt_coverage": 1.0,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "plate",
+        "matched_gt_id": 42,
+        "is_exact_match": false,
+        "semantic_similarity": 0.85107421875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "An abstract decorative sculpture crafted from a smooth white stone or resin",
+            "similarity": 0.2360444962978363
+        }
+    },
+    {
+        "instance_key": "door_52",
+        "predicted_id_without_number": "door",
+        "best_iou": 0.05555553385423222,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.05555553385423222,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.837890625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A rectangular light-brown wooden panel with a small knob serving as a cabinet door",
+            "similarity": 0.22148174047470093
+        }
+    },
+    {
+        "instance_key": "sensor_53",
+        "predicted_id_without_number": "sensor",
+        "best_iou": 0.6460410656631737,
+        "pred_coverage": 0.8310621746169476,
+        "gt_coverage": 0.7437101761035744,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "panel",
+        "matched_gt_id": 41,
+        "is_exact_match": false,
+        "semantic_similarity": 0.783203125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "Small rectangular electronic device with a dark top sensor window and a white body",
+            "similarity": 0.21682456135749817
+        }
+    },
+    {
+        "instance_key": "battery_54",
+        "predicted_id_without_number": "battery",
+        "best_iou": 0.2793364078312614,
+        "pred_coverage": 0.9212536424353873,
+        "gt_coverage": 0.2861692560716272,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "panel",
+        "matched_gt_id": 41,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7646484375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "Compact rectangular portable power source",
+            "similarity": 0.20983204245567322
+        }
+    },
+    {
+        "instance_key": "accentlights_56",
+        "predicted_id_without_number": "accentlights",
+        "best_iou": 0.08465703312564248,
+        "pred_coverage": 0.7191968727440117,
+        "gt_coverage": 0.08755089490324025,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "rug",
+        "matched_gt_id": 20,
+        "is_exact_match": false,
+        "semantic_similarity": 0.70849609375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A line of small red decorative accent lights",
+            "similarity": 0.07264542579650879
+        }
+    },
+    {
+        "instance_key": "ceilingtile_57",
+        "predicted_id_without_number": "ceilingtile",
+        "best_iou": 0.18064371720767594,
+        "pred_coverage": 0.2574178143635673,
+        "gt_coverage": 0.3772127993317171,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 43,
+        "is_exact_match": false,
+        "semantic_similarity": 0.70703125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white rectangular acoustic ceiling tile with a small central hole",
+            "similarity": 0.2617092728614807
+        }
+    },
+    {
+        "instance_key": "skylight_58",
+        "predicted_id_without_number": "skylight",
+        "best_iou": 0.37844958223524755,
+        "pred_coverage": 0.3813519182054358,
+        "gt_coverage": 0.9802863663520848,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 40,
+        "is_exact_match": false,
+        "semantic_similarity": 0.76708984375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A rectangular architectural skylight",
+            "similarity": 0.2365322858095169
+        }
+    },
+    {
+        "instance_key": "cloth_59",
+        "predicted_id_without_number": "cloth",
+        "best_iou": 0.011615163913140774,
+        "pred_coverage": 0.5652389983950707,
+        "gt_coverage": 0.01171986870354208,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7861328125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A small, thin piece of light-colored fabric or cloth",
+            "similarity": 0.18046683073043823
+        }
+    },
+    {
+        "instance_key": "vent_60",
+        "predicted_id_without_number": "vent",
+        "best_iou": 0.15388641486293042,
+        "pred_coverage": 0.15514898998451798,
+        "gt_coverage": 0.9497740354492998,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "vent",
+        "matched_gt_id": 33,
+        "is_exact_match": true,
+        "semantic_similarity": 0.99951171875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A rectangular perforated metal grille used for air circulation",
+            "similarity": 0.23919154703617096
+        }
+    },
+    {
+        "instance_key": "light_61",
+        "predicted_id_without_number": "light",
+        "best_iou": 0.07487618014627988,
+        "pred_coverage": 0.07681448907660889,
+        "gt_coverage": 0.747940434949459,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 22,
+        "is_exact_match": false,
+        "semantic_similarity": 0.92822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A rectangular recessed ceiling fixture featuring a bright white light panel and a dark ventilation grill.",
+            "similarity": 0.21992644667625427
+        }
+    },
+    {
+        "instance_key": "lampshade_62",
+        "predicted_id_without_number": "lampshade",
+        "best_iou": 0.18881634681305545,
+        "pred_coverage": 0.9367573730427178,
+        "gt_coverage": 0.19125434672896993,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 45,
+        "is_exact_match": false,
+        "semantic_similarity": 0.93505859375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A cream-colored fabric cover used to diffuse light from a lamp bulb",
+            "similarity": 0.20294314622879028
+        }
+    },
+    {
+        "instance_key": "component_63",
+        "predicted_id_without_number": "component",
+        "best_iou": 0.011624558088342257,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.011624558088342257,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 45,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7939453125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A small, white, cylindrical electronic component with a reflective surface",
+            "similarity": 0.14252179861068726
+        }
+    },
+    {
+        "instance_key": "tool_67",
+        "predicted_id_without_number": "tool",
+        "best_iou": 0.021608237975664198,
+        "pred_coverage": 0.9877038599473749,
+        "gt_coverage": 0.021614052277881064,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.796875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A narrow black plastic rod",
+            "similarity": 0.1911153644323349
+        }
+    },
+    {
+        "instance_key": "trim_68",
+        "predicted_id_without_number": "trim",
+        "best_iou": 2.4423423426742866e-05,
+        "pred_coverage": 1.0,
+        "gt_coverage": 2.4423423426742866e-05,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "wall",
+        "matched_gt_id": 21,
+        "is_exact_match": false,
+        "semantic_similarity": 0.794921875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A slender vertical metal edging piece for window decoration",
+            "similarity": 0.16648070514202118
+        }
+    },
+    {
+        "instance_key": "throwpillow_69",
+        "predicted_id_without_number": "throwpillow",
+        "best_iou": 0.6468656481281125,
+        "pred_coverage": 0.661479608291824,
+        "gt_coverage": 0.9669742801269345,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 3,
+        "is_exact_match": false,
+        "semantic_similarity": 0.95361328125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A square textile item used for lounging comfort",
+            "similarity": 0.21692994236946106
+        }
+    },
+    {
+        "instance_key": "ceilinglight_70",
+        "predicted_id_without_number": "ceilinglight",
+        "best_iou": 0.064936618955069,
+        "pred_coverage": 0.06512360571051455,
+        "gt_coverage": 0.957655963756764,
+        "segmentation_status": "under-segmented",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 53,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8623046875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A rectangular white light panel installed in a ceiling for room illumination",
+            "similarity": 0.23105785250663757
+        }
+    },
+    {
+        "instance_key": "molding_71",
+        "predicted_id_without_number": "molding",
+        "best_iou": 0.010073110613539901,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.010073110613539901,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.80859375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A thin, rectangular architectural trim piece located above a window opening",
+            "similarity": 0.20274749398231506
+        }
+    },
+    {
+        "instance_key": "gasket_72",
+        "predicted_id_without_number": "gasket",
+        "best_iou": 0.0003709857077136305,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0003709857077136305,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "door",
+        "matched_gt_id": 6,
+        "is_exact_match": false,
+        "semantic_similarity": 0.74169921875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A small, elongated piece of dark rubber used as a seal",
+            "similarity": 0.13726496696472168
+        }
+    },
+    {
+        "instance_key": "partition_73",
+        "predicted_id_without_number": "partition",
+        "best_iou": 0.0002604410648390859,
+        "pred_coverage": 0.806483643212452,
+        "gt_coverage": 0.0002604573416073923,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.76953125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A tall, rectangular room divider featuring a grey frame and a white fabric panel",
+            "similarity": 0.19317616522312164
+        }
+    },
+    {
+        "instance_key": "tile_75",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.026388724535124357,
+        "pred_coverage": 0.4287519615383593,
+        "gt_coverage": 0.027350336080225076,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.77294921875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Rectangular white ceiling tile used in a modular grid system",
+            "similarity": 0.22785504162311554
+        }
+    },
+    {
+        "instance_key": "unknown_76",
+        "predicted_id_without_number": "unknown",
+        "best_iou": 0.007253968859052302,
+        "pred_coverage": 0.4700609602602479,
+        "gt_coverage": 0.007313781003014433,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "blanket",
+        "matched_gt_id": 11,
+        "is_exact_match": false,
+        "semantic_similarity": 0.80029296875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A flexible, striped piece of textile material. fabric",
+            "similarity": 0.24365615844726562
+        }
+    },
+    {
+        "instance_key": "tile_77",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.0682955607200254,
+        "pred_coverage": 0.1779945262774041,
+        "gt_coverage": 0.09975968053985772,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "lamp",
+        "matched_gt_id": 40,
+        "is_exact_match": false,
+        "semantic_similarity": 0.76416015625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A flat white modular piece integrated into a suspended ceiling",
+            "similarity": 0.23197360336780548
+        }
+    },
+    {
+        "instance_key": "trim_78",
+        "predicted_id_without_number": "trim",
+        "best_iou": 0.024236665866419163,
+        "pred_coverage": 0.7115435046174063,
+        "gt_coverage": 0.024477164630379758,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A slender, rectangular metallic strip used for decorative accenting on a device surface",
+            "similarity": 0.20399996638298035
+        }
+    },
+    {
+        "instance_key": "trim_79",
+        "predicted_id_without_number": "trim",
+        "best_iou": 0.0321006401534265,
+        "pred_coverage": 0.4945644123693496,
+        "gt_coverage": 0.03318946208945393,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A matte black, elongated plastic trim piece with a shaped profile",
+            "similarity": 0.21425311267375946
+        }
+    },
+    {
+        "instance_key": "pick_80",
+        "predicted_id_without_number": "pick",
+        "best_iou": 0.002211671659681323,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.002211671659681323,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.74951171875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A small, dark metallic precision instrument used for picking or probing",
+            "similarity": 0.1591116487979889
+        }
+    },
+    {
+        "instance_key": "rug_83",
+        "predicted_id_without_number": "rug",
+        "best_iou": 0.4226470771930429,
+        "pred_coverage": 0.8635259475748749,
+        "gt_coverage": 0.4528990704484227,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "rug",
+        "matched_gt_id": 20,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white, high-pile shaggy rectangular rug used as a soft floor covering",
+            "similarity": 0.2900824546813965
+        }
+    },
+    {
+        "instance_key": "headrail_84",
+        "predicted_id_without_number": "headrail",
+        "best_iou": 0.015928366801687032,
+        "pred_coverage": 0.7009956570520707,
+        "gt_coverage": 0.016037326372703827,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "blinds",
+        "matched_gt_id": 27,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7119140625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Long, dark rectangular rail used to support window blinds",
+            "similarity": 0.18046626448631287
+        }
+    },
+    {
+        "instance_key": "bezel_85",
+        "predicted_id_without_number": "bezel",
+        "best_iou": 0.0027947322779448714,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0027947322779448714,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "door",
+        "matched_gt_id": 6,
+        "is_exact_match": false,
+        "semantic_similarity": 0.77880859375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A long, narrow black plastic strip serving as the upper frame of a display screen",
+            "similarity": 0.15486615896224976
+        }
+    },
+    {
+        "instance_key": "duvet_86",
+        "predicted_id_without_number": "duvet",
+        "best_iou": 0.19721044162962478,
+        "pred_coverage": 0.8948282003945999,
+        "gt_coverage": 0.20188999434935967,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "blanket",
+        "matched_gt_id": 11,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8828125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A large, off-white ribbed fabric bedding cover",
+            "similarity": 0.213640034198761
+        }
+    },
+    {
+        "instance_key": "ceilingtile_87",
+        "predicted_id_without_number": "ceilingtile",
+        "best_iou": 0.030658579175050184,
+        "pred_coverage": 0.5485276279931456,
+        "gt_coverage": 0.031452242499071234,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8857421875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A flat, white acoustic ceiling tile within a grid system",
+            "similarity": 0.23506003618240356
+        }
+    },
+    {
+        "instance_key": "rail_90",
+        "predicted_id_without_number": "rail",
+        "best_iou": 0.009229288455626915,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.009229288455626915,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "blinds",
+        "matched_gt_id": 27,
+        "is_exact_match": false,
+        "semantic_similarity": 0.74169921875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A long, thin, dark linear rail used for supporting window coverings",
+            "similarity": 0.14159215986728668
+        }
+    },
+    {
+        "instance_key": "marker_91",
+        "predicted_id_without_number": "marker",
+        "best_iou": 2.2152099905049157e-07,
+        "pred_coverage": 1.0,
+        "gt_coverage": 2.2152099905049157e-07,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.73876953125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Small red marker pen",
+            "similarity": 0.17454427480697632
+        }
+    },
+    {
+        "instance_key": "seam_92",
+        "predicted_id_without_number": "seam",
+        "best_iou": 0.00017449975892347037,
+        "pred_coverage": 0.8885985789240286,
+        "gt_coverage": 0.0001745035764694816,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "door",
+        "matched_gt_id": 6,
+        "is_exact_match": false,
+        "semantic_similarity": 0.74169921875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A narrow gap or junction between two adjacent dark structural components",
+            "similarity": 0.17482586205005646
+        }
+    },
+    {
+        "instance_key": "leg_93",
+        "predicted_id_without_number": "leg",
+        "best_iou": 7.232498741726897e-06,
+        "pred_coverage": 1.0,
+        "gt_coverage": 7.232498741726897e-06,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.74462890625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A dark, tapered wooden support for a piece of furniture",
+            "similarity": 0.1594262719154358
+        }
+    },
+    {
+        "instance_key": "panel_94",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.053913319120380616,
+        "pred_coverage": 0.929228284645577,
+        "gt_coverage": 0.05413560730756421,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.85107421875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A flat square wooden panel acting as a front cover for furniture",
+            "similarity": 0.27274295687675476
+        }
+    },
+    {
+        "instance_key": "cable_96",
+        "predicted_id_without_number": "cable",
+        "best_iou": 8.77503142501182e-05,
+        "pred_coverage": 1.0,
+        "gt_coverage": 8.77503142501182e-05,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.72509765625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A long, thin red electrical cable used for power or data transmission",
+            "similarity": 0.1334414780139923
+        }
+    },
+    {
+        "instance_key": "window_97",
+        "predicted_id_without_number": "window",
+        "best_iou": 0.4090494187463472,
+        "pred_coverage": 0.42826273131783293,
+        "gt_coverage": 0.9011630034578221,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "wall",
+        "matched_gt_id": 25,
+        "is_exact_match": false,
+        "semantic_similarity": 0.83154296875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A rectangular window featuring dark blue horizontal slats for light regulation",
+            "similarity": 0.17579196393489838
+        }
+    },
+    {
+        "instance_key": "sliver_99",
+        "predicted_id_without_number": "sliver",
+        "best_iou": 9.40615888457205e-05,
+        "pred_coverage": 1.0,
+        "gt_coverage": 9.40615888457205e-05,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "wall",
+        "matched_gt_id": 5,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7900390625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A narrow sliver of grey metal debris",
+            "similarity": 0.1550944447517395
+        }
+    },
+    {
+        "instance_key": "ornament_100",
+        "predicted_id_without_number": "ornament",
+        "best_iou": 0.010445833605861383,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.010445833605861383,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.78662109375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A tan-colored, irregularly shaped wooden decorative piece",
+            "similarity": 0.18022263050079346
+        }
+    },
+    {
+        "instance_key": "cabinet_101",
+        "predicted_id_without_number": "cabinet",
+        "best_iou": 0.5726763612015893,
+        "pred_coverage": 0.9178357341365935,
+        "gt_coverage": 0.6036214653866305,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A low cabinet with a light-beige exterior and dark-brown drawers or doors",
+            "similarity": 0.25010138750076294
+        }
+    },
+    {
+        "instance_key": "compartment_102",
+        "predicted_id_without_number": "compartment",
+        "best_iou": 0.0121323392617628,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0121323392617628,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.82763671875,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A shallow wooden compartment for storing small items",
+            "similarity": 0.1953696310520172
+        }
+    },
+    {
+        "instance_key": "trim_103",
+        "predicted_id_without_number": "trim",
+        "best_iou": 0.0023114727386171737,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0023114727386171737,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A thin, silver-colored decorative trim piece for a frame",
+            "similarity": 0.18820132315158844
+        }
+    },
+    {
+        "instance_key": "powerbank_104",
+        "predicted_id_without_number": "powerbank",
+        "best_iou": 0.0006690404904815863,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0006690404904815863,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "cabinet",
+        "matched_gt_id": 36,
+        "is_exact_match": false,
+        "semantic_similarity": 0.75,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A red rectangular portable electronic device",
+            "similarity": 0.1650732457637787
+        }
+    },
+    {
+        "instance_key": "panels_106",
+        "predicted_id_without_number": "panels",
+        "best_iou": 0.14867865811817188,
+        "pred_coverage": 0.27628761073629027,
+        "gt_coverage": 0.2435164856463684,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "ceiling",
+        "matched_gt_id": 56,
+        "is_exact_match": false,
+        "semantic_similarity": 0.78271484375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "Large flat white panels forming a suspended ceiling",
+            "similarity": 0.21298111975193024
+        }
+    },
+    {
+        "instance_key": "blinds_107",
+        "predicted_id_without_number": "blinds",
+        "best_iou": 0.6695601480660818,
+        "pred_coverage": 0.6703046311103242,
+        "gt_coverage": 0.9983439509904628,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "window",
+        "matched_gt_id": 26,
+        "is_exact_match": false,
+        "semantic_similarity": 0.83837890625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A window covering featuring thin, parallel horizontal slats for light and privacy control",
+            "similarity": 0.25364428758621216
+        }
+    },
+    {
+        "instance_key": "blinds_109",
+        "predicted_id_without_number": "blinds",
+        "best_iou": 0.6450887805379054,
+        "pred_coverage": 0.8560409891691328,
+        "gt_coverage": 0.7235859319757785,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "blinds",
+        "matched_gt_id": 27,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0009765625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white rectangular window blind featuring thin horizontal slats for adjusting light",
+            "similarity": 0.2669700086116791
+        }
+    },
+    {
+        "instance_key": "pillow_110",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.5375268921104532,
+        "pred_coverage": 0.5995282422121908,
+        "gt_coverage": 0.8386490387502451,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 18,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A white and grey checkered fabric pillow used for sleeping support",
+            "similarity": 0.2540442943572998
+        }
+    },
+    {
+        "instance_key": "pillow_111",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.23790221986394164,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.23790221986394167,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "pillow",
+        "matched_gt_id": 9,
+        "is_exact_match": true,
+        "semantic_similarity": 1.0,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A long rectangular pillow with a white and light-grey gingham check pattern",
+            "similarity": 0.2680191397666931
+        }
+    },
+    {
+        "instance_key": "baseboard_112",
+        "predicted_id_without_number": "baseboard",
+        "best_iou": 0.22241954796917987,
+        "pred_coverage": 0.8236398559628431,
+        "gt_coverage": 0.23354201340123823,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "floor",
+        "matched_gt_id": 1,
+        "is_exact_match": false,
+        "semantic_similarity": 0.767578125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A long, slim, black architectural strip serving as a minimalist baseboard",
+            "similarity": 0.19924700260162354
+        }
+    },
+    {
+        "instance_key": "stone_114",
+        "predicted_id_without_number": "stone",
+        "best_iou": 0.49501363446528335,
+        "pred_coverage": 0.7377263268431492,
+        "gt_coverage": 0.6007340396190973,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "floor",
+        "matched_gt_id": 1,
+        "is_exact_match": false,
+        "semantic_similarity": 0.814453125,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A light-colored architectural surface with a subtle stone-like pattern",
+            "similarity": 0.1456189751625061
+        }
+    },
+    {
+        "instance_key": "trim_115",
+        "predicted_id_without_number": "trim",
+        "best_iou": 0.0006361021132898098,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0006361021132898098,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A slim, dark metallic architectural trim piece attached to a frame for aesthetic purposes",
+            "similarity": 0.21243926882743835
+        }
+    },
+    {
+        "instance_key": "bracket_116",
+        "predicted_id_without_number": "bracket",
+        "best_iou": 0.0034046228797719427,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0034046228797719427,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 29,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7646484375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A slender grey structural component of a window blind mounting system",
+            "similarity": 0.16496554017066956
+        }
+    },
+    {
+        "instance_key": "bedspread_117",
+        "predicted_id_without_number": "bedspread",
+        "best_iou": 0.07658653768443958,
+        "pred_coverage": 0.9227482143523751,
+        "gt_coverage": 0.07708076158819081,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "comforter",
+        "matched_gt_id": 10,
+        "is_exact_match": false,
+        "semantic_similarity": 0.908203125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A large, light-purple and white checkered fabric used for bedding",
+            "similarity": 0.19744262099266052
+        }
+    },
+    {
+        "instance_key": "shards_118",
+        "predicted_id_without_number": "shards",
+        "best_iou": 0.0039356410056703315,
+        "pred_coverage": 0.5856071057907274,
+        "gt_coverage": 0.003946632281395567,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "blanket",
+        "matched_gt_id": 11,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7646484375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Small, irregular white fragments of a broken hard material",
+            "similarity": 0.17740219831466675
+        }
+    },
+    {
+        "instance_key": "label_119",
+        "predicted_id_without_number": "label",
+        "best_iou": 0.00018767627510747525,
+        "pred_coverage": 0.04642941448473209,
+        "gt_coverage": 0.00018840247405634662,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "window",
+        "matched_gt_id": 29,
+        "is_exact_match": false,
+        "semantic_similarity": 0.765625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Torn remnants of a white adhesive label on a blue frame",
+            "similarity": 0.1450255811214447
+        }
+    },
+    {
+        "instance_key": "mirror_120",
+        "predicted_id_without_number": "mirror",
+        "best_iou": 0.8030584212518237,
+        "pred_coverage": 0.8419355981555916,
+        "gt_coverage": 0.9456263753749715,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "undefined",
+        "matched_gt_id": 50,
+        "is_exact_match": false,
+        "semantic_similarity": 0.78515625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A rectangular mirror featuring a wide, weathered golden-brown frame",
+            "similarity": 0.29601213335990906
+        }
+    },
+    {
+        "instance_key": "mirror_121",
+        "predicted_id_without_number": "mirror",
+        "best_iou": 0.2860573782583505,
+        "pred_coverage": 0.9732209559671601,
+        "gt_coverage": 0.28832683461634956,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "undefined",
+        "matched_gt_id": 50,
+        "is_exact_match": false,
+        "semantic_similarity": 0.78515625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A rectangular reflective glass surface that reflects ambient light",
+            "similarity": 0.21819423139095306
+        }
+    },
+    {
+        "instance_key": "book_122",
+        "predicted_id_without_number": "book",
+        "best_iou": 1.350261605580095e-07,
+        "pred_coverage": 1.0,
+        "gt_coverage": 1.350261605580095e-07,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "indoor-plant",
+        "matched_gt_id": 54,
+        "is_exact_match": false,
+        "semantic_similarity": 0.78955078125,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A thick, dark-covered small book",
+            "similarity": 0.1827341765165329
+        }
+    },
+    {
+        "instance_key": "decoration_123",
+        "predicted_id_without_number": "decoration",
+        "best_iou": 0.498256115343837,
+        "pred_coverage": 0.9277534878174559,
+        "gt_coverage": 0.5183690764247579,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "indoor-plant",
+        "matched_gt_id": 54,
+        "is_exact_match": false,
+        "semantic_similarity": 0.84521484375,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A synthetic plastic imitation of botanical foliage used for interior decor",
+            "similarity": 0.2919009029865265
+        }
+    },
+    {
+        "instance_key": "trim_124",
+        "predicted_id_without_number": "trim",
+        "best_iou": 0.0005575341124255128,
+        "pred_coverage": 0.5974815443703275,
+        "gt_coverage": 0.0005577436043789413,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 29,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A thin, white vertical decorative trim piece for a window blind",
+            "similarity": 0.17130117118358612
+        }
+    },
+    {
+        "instance_key": "bracket_125",
+        "predicted_id_without_number": "bracket",
+        "best_iou": 4.917303416343686e-05,
+        "pred_coverage": 0.7867211386709675,
+        "gt_coverage": 4.917368968472026e-05,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "door",
+        "matched_gt_id": 6,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7958984375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A slender dark metal support rail or structural component",
+            "similarity": 0.19323687255382538
+        }
+    },
+    {
+        "instance_key": "doorframe_127",
+        "predicted_id_without_number": "doorframe",
+        "best_iou": 0.00472538437635578,
+        "pred_coverage": 0.3511130662009324,
+        "gt_coverage": 0.004767014301850537,
+        "segmentation_status": "partial-match",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8056640625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A slim vertical edge of a door frame",
+            "similarity": 0.24590112268924713
+        }
+    },
+    {
+        "instance_key": "closet_128",
+        "predicted_id_without_number": "closet",
+        "best_iou": 0.6044927491332561,
+        "pred_coverage": 0.8546125433714578,
+        "gt_coverage": 0.673782410980317,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "door",
+        "matched_gt_id": 6,
+        "is_exact_match": false,
+        "semantic_similarity": 0.85400390625,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A beige-colored door for a storage unit",
+            "similarity": 0.27326953411102295
+        }
+    },
+    {
+        "instance_key": "trim_129",
+        "predicted_id_without_number": "trim",
+        "best_iou": 0.0013277121008589167,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0013277121008589167,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 29,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7822265625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A long, narrow dark grey plastic edge trim",
+            "similarity": 0.14814260601997375
+        }
+    },
+    {
+        "instance_key": "leds_130",
+        "predicted_id_without_number": "leds",
+        "best_iou": 4.238190951511795e-06,
+        "pred_coverage": 1.0,
+        "gt_coverage": 4.238190951511795e-06,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "door",
+        "matched_gt_id": 6,
+        "is_exact_match": false,
+        "semantic_similarity": 0.7177734375,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "Small, red rectangular light-emitting diodes on a dark circuit strip",
+            "similarity": 0.11173290759325027
+        }
+    },
+    {
+        "instance_key": "edge_131",
+        "predicted_id_without_number": "edge",
+        "best_iou": 0.0029901649835613834,
+        "pred_coverage": 0.9052858847650692,
+        "gt_coverage": 0.00299110072345883,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "door",
+        "matched_gt_id": 6,
+        "is_exact_match": false,
+        "semantic_similarity": 0.79150390625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "The thin side edge of a brown wooden door",
+            "similarity": 0.17775173485279083
+        }
+    },
+    {
+        "instance_key": "screen_132",
+        "predicted_id_without_number": "screen",
+        "best_iou": 0.577133557427737,
+        "pred_coverage": 0.7804230667395444,
+        "gt_coverage": 0.6890160962359699,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8701171875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A translucent white textile screen used for privacy or light filtering",
+            "similarity": 0.28278204798698425
+        }
+    },
+    {
+        "instance_key": "doorframe_133",
+        "predicted_id_without_number": "doorframe",
+        "best_iou": 0.0069005120892084906,
+        "pred_coverage": 1.0,
+        "gt_coverage": 0.0069005120892084906,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 37,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8056640625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A long, narrow white structural element forming the vertical side of a doorway",
+            "similarity": 0.18515858054161072
+        }
+    },
+    {
+        "instance_key": "shades_135",
+        "predicted_id_without_number": "shades",
+        "best_iou": 0.7604932876159477,
+        "pred_coverage": 0.772129310972559,
+        "gt_coverage": 0.9805689049079878,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "window",
+        "matched_gt_id": 29,
+        "is_exact_match": false,
+        "semantic_similarity": 0.8076171875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A retractable white window covering with thin parallel slats",
+            "similarity": 0.25478696823120117
+        }
+    },
+    {
+        "instance_key": "mullion_137",
+        "predicted_id_without_number": "mullion",
+        "best_iou": 0.001196996486546574,
+        "pred_coverage": 0.9100999536600469,
+        "gt_coverage": 0.0011971380359126016,
+        "segmentation_status": "over-segmented",
+        "matched_gt_class": "window",
+        "matched_gt_id": 29,
+        "is_exact_match": false,
+        "semantic_similarity": 0.75390625,
+        "is_semantic_match": false,
+        "raw_results_dict": {
+            "caption": "A long, narrow, vertical dark-colored structural element of a window frame",
+            "similarity": 0.2035396546125412
+        }
+    },
+    {
+        "instance_key": "painting_138",
+        "predicted_id_without_number": "painting",
+        "best_iou": 0.8772852985590173,
+        "pred_coverage": 0.9222132676809346,
+        "gt_coverage": 0.9473894187602947,
+        "segmentation_status": "good-match",
+        "matched_gt_class": "picture",
+        "matched_gt_id": 12,
+        "is_exact_match": false,
+        "semantic_similarity": 0.87841796875,
+        "is_semantic_match": true,
+        "raw_results_dict": {
+            "caption": "A rectangular framed piece of art showing a woodland pattern",
+            "similarity": 0.2899007797241211
+        }
+    }
+]

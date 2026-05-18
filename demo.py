@@ -1,4 +1,5 @@
 import os
+import json
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import time
 import traceback
@@ -242,19 +243,58 @@ class ViserViewer:
         @self.show_bboxes_checkbox.on_update
         def _(_):
             self.update_bbox_visualization()
+            
+        self.show_gt_bboxes_checkbox = self.server.gui.add_checkbox(
+            "Show GT Bounding Boxes",
+            initial_value=False,
+            hint="Show ground truth bounding boxes from info_semantic.json",
+        )
+
+        @self.show_gt_bboxes_checkbox.on_update
+        def _(_):
+            self.update_bbox_visualization()
 
         self.vlm_descriptions = {}
         if self.labels is not None and self.sorted_labels is not None:
-            vlm_descriptions = {}
-            if language is not None:
-                desc_path = model_path / f"{language}_descriptions.pth"
-                if desc_path.exists():
-                    try:
-                        desc_data = torch.load(desc_path, weights_only=False)
-                        for k, v in desc_data.items():
-                            self.vlm_descriptions[k] = v["description"]
-                    except Exception as e:
-                        print(f"Could not load vlm semantic descriptions from {desc_path}: {e}")
+            # 1. Try instances.json (preferred)
+            instances_path = model_path / "instances.json"
+            if instances_path.exists():
+                try:
+                    with open(instances_path, "r") as f:
+                        inst_data = json.load(f)
+                    import re
+                    for obj_key, info in inst_data.get("instances", {}).items():
+                        # 1. Extract numeric ID (e.g., "obj10" -> 10, "panel_12" -> 12)
+                        id_match = re.search(r'(\d+)', obj_key)
+                        if id_match:
+                            lbl_id = int(id_match.group(1))
+                            
+                            # 2. Extract label without number (e.g., "panel_12" -> "panel")
+                            # We take everything before the first number or underscore-number
+                            label_match = re.match(r'([a-zA-Z]+)', obj_key)
+                            clean_label = label_match.group(1) if label_match else obj_key
+                            
+                            self.vlm_descriptions[lbl_id] = clean_label
+                except Exception as e:
+                    print(f"Error loading instances.json: {e}")
+
+            # 2. Try descriptions.pth (fallback)
+            if not self.vlm_descriptions:
+                fnames = ["descriptions.pth"]
+                if language:
+                    fnames.append(f"{language}_descriptions.pth")
+                
+                for fname in fnames:
+                    desc_path = model_path / fname
+                    if desc_path.exists():
+                        try:
+                            desc_data = torch.load(desc_path, weights_only=False)
+                            for k, v in desc_data.items():
+                                self.vlm_descriptions[k] = v.get("identifier", v["description"])
+                            break
+                        except Exception as e:
+                            print(f"Error loading {fname}: {e}")
+            
             vlm_descriptions = self.vlm_descriptions
 
             options = ["all"]
@@ -500,8 +540,8 @@ class ViserViewer:
         def _(client: viser.ClientHandle):
             try:
                 c2w = tf.SE3.from_rotation_and_translation(
-                    tf.SO3.from_matrix(self.cameras[0].R.transpose(0, 1).numpy()),
-                    self.cameras[0].T.numpy(),
+                    tf.SO3.from_matrix(self.cameras[0].R.detach().cpu().transpose(0, 1).numpy()),
+                    self.cameras[0].T.detach().cpu().numpy(),
                 ).inverse()
                 with client.atomic():
                     # look_at = c2w @ tf.SE3.from_translation(np.array([0.0, 0.0, -1.0]))
@@ -564,7 +604,7 @@ class ViserViewer:
         self.bbox_handles = []
         self.label_handles = []
 
-        if not self.show_bboxes_checkbox.value:
+        if not self.show_bboxes_checkbox.value and not self.show_gt_bboxes_checkbox.value:
             return
 
         def get_box_edges(min_pt, max_pt):
@@ -585,39 +625,65 @@ class ViserViewer:
             return np.array(points)
 
 
-        for label_id, bbox in self.bboxes.items():
-            # If no description, use label ID
-            desc = self.vlm_descriptions.get(label_id, f"Cluster {label_id}")
+        # Sort bboxes by volume: Smallest FIRST (this is crucial for transparency to work)
+        sorted_bboxes = sorted(
+            self.bboxes.items(), 
+            key=lambda x: x[1]["size"][0] * x[1]["size"][1] * x[1]["size"][2]
+        )
+
+        for label_id, bbox in sorted_bboxes:
+            # Robustness check: skip boxes that are suspiciously large or far (outliers)
+            size = np.array(bbox["size"])
+            center = np.array(bbox["center"])
+            
+            # Use VLM description if available, otherwise fallback to "Cluster #"
+            desc = self.vlm_descriptions.get(int(label_id), f"Cluster {label_id}")
             
             # Get color for this cluster
-            if self.random_colors is not None and label_id < self.random_colors.shape[0]:
-                color = (self.random_colors[label_id].cpu().numpy() * 255).astype(int)
+            if self.random_colors is not None and int(label_id) < self.random_colors.shape[0]:
+                color = (self.random_colors[int(label_id)].cpu().numpy() * 255).astype(int)
                 color = tuple(map(int, color))
             else:
                 color = (255, 0, 0)
 
-            # Add semi-transparent box
-            box_handle = self.server.scene.add_box(
-                name=f"bboxes/box_{label_id}",
-                position=np.array(bbox["center"]) * VISER_SCALE,
-                scale=np.array(bbox["size"]) * VISER_SCALE,
-                color=color,
-                opacity=0.3,
-            )
-            self.bbox_handles.append(box_handle)
+            # Add semi-transparent solid box
+            # box_handle = self.server.scene.add_box(
+            #    name=f"bboxes/faces_{label_id}",
+            #    position=np.array(bbox["center"]) * VISER_SCALE,
+            #    scale=np.array(bbox["size"]) * VISER_SCALE,
+            #    color=color,
+            #    opacity=0.03, 
+            # )
+            # self.bbox_handles.append(box_handle)
 
-            # Add thick edges
-            edge_points = get_box_edges(bbox["min"], bbox["max"]) * VISER_SCALE
-            line_handle = self.server.scene.add_line_segments(
-                name=f"bboxes/edges_{label_id}",
-                points=edge_points,
-                colors=color,
-                line_width=4.0, # Thicker
-            )
-            self.bbox_handles.append(line_handle)
+            # Add 12 thin boxes as opaque edges
+            x0, y0, z0 = bbox["min"]
+            x1, y1, z1 = bbox["max"]
+            dx, dy, dz = x1 - x0, y1 - y0, z1 - z0
+            t = 0.015 * VISER_SCALE # thickness
+            
+            edge_configs = [
+                ([x0+dx/2, y0, z0], [dx, t, t]), ([x0+dx/2, y1, z0], [dx, t, t]),
+                ([x0+dx/2, y0, z1], [dx, t, t]), ([x0+dx/2, y1, z1], [dx, t, t]),
+                ([x0, y0+dy/2, z0], [t, dy, t]), ([x1, y0+dy/2, z0], [t, dy, t]),
+                ([x0, y0+dy/2, z1], [t, dy, t]), ([x1, y0+dy/2, z1], [t, dy, t]),
+                ([x0, y0, z0+dz/2], [t, t, dz]), ([x1, y0, z0+dz/2], [t, t, dz]),
+                ([x0, y1, z0+dz/2], [t, t, dz]), ([x1, y1, z0+dz/2], [t, t, dz]),
+            ]
+            # Tiny jitter to prevent Z-fighting between nested boxes
+            jitter = (label_id % 10) * 0.002 * VISER_SCALE
+            
+            for i, (pos, sc) in enumerate(edge_configs):
+                edge_handle = self.server.scene.add_box(
+                    name=f"bboxes/edges_{label_id}_{i}",
+                    position=np.array(pos) * VISER_SCALE + jitter,
+                    scale=np.array(sc) * VISER_SCALE,
+                    color=color,
+                    opacity=1.0,
+                )
+                self.bbox_handles.append(edge_handle)
 
 
-            # Add label at the top of the box
             label_pos = np.array(bbox["center"])
             label_pos[1] -= bbox["size"][1] / 2 # -y is up
             
@@ -627,6 +693,81 @@ class ViserViewer:
                 position=label_pos * VISER_SCALE,
             )
             self.label_handles.append(label_handle)
+
+        if self.show_gt_bboxes_checkbox.value:
+            import json
+            # Intenta deducir la escena (Replica) a partir del directorio del modelo
+            try:
+                parts = self.model_dir.parts
+                # Ej: outputs/Replica/room0/...
+                if "Replica" in parts:
+                    replica_idx = parts.index("Replica")
+                    room_name = parts[replica_idx + 1]
+                    # Convertimos room0 -> room_0 para el path
+                    room_formatted = room_name.replace("room", "room_") if "room" in room_name and "_" not in room_name else room_name
+                    info_path = Path(f"/home/ubuntu/datasets/replica_v1/{room_formatted}/habitat/info_semantic.json")
+                    
+                    if info_path.exists():
+                        with open(info_path, 'r') as f:
+                            info_data = json.load(f)
+                        
+                        for gt_obj in info_data.get('objects', []):
+                            gt_id = gt_obj.get('id', 'unknown')
+                            gt_class = gt_obj.get('class_name', 'unknown')
+                            abb = gt_obj.get('oriented_bbox', {}).get('abb', None)
+                            
+                            if abb is not None:
+                                center = np.array(abb['center'])
+                                size = np.array(abb['sizes'])
+                                
+                                rot_gt = gt_obj.get('oriented_bbox', {}).get('orientation', {}).get('rotation', [0,0,0,1])
+                                # JSON quaternion is [x, y, z, w], viser expects [w, x, y, z]
+                                wxyz = np.array([rot_gt[3], rot_gt[0], rot_gt[1], rot_gt[2]])
+                                rot_mat = tf.SO3(wxyz).as_matrix()
+                                
+                                dx, dy, dz = size
+                                t = 0.015 * VISER_SCALE
+                                
+                                # Posiciones locales de los bordes con origen en 0,0,0
+                                x0, y0, z0 = -dx/2, -dy/2, -dz/2
+                                x1, y1, z1 = dx/2, dy/2, dz/2
+                                
+                                edge_configs = [
+                                    ([0, y0, z0], [dx, t, t]), ([0, y1, z0], [dx, t, t]),
+                                    ([0, y0, z1], [dx, t, t]), ([0, y1, z1], [dx, t, t]),
+                                    ([x0, 0, z0], [t, dy, t]), ([x1, 0, z0], [t, dy, t]),
+                                    ([x0, 0, z1], [t, dy, t]), ([x1, 0, z1], [t, dy, t]),
+                                    ([x0, y0, 0], [t, t, dz]), ([x1, y0, 0], [t, t, dz]),
+                                    ([x0, y1, 0], [t, t, dz]), ([x1, y1, 0], [t, t, dz]),
+                                ]
+                                
+                                color = (0, 255, 0) # Green for GT
+                                jitter = (int(gt_id) % 10) * 0.002 * VISER_SCALE
+                                
+                                for i, (local_pos, sc) in enumerate(edge_configs):
+                                    # Rotar la posición local del borde y sumarle el centro global
+                                    world_pos = rot_mat @ (center + np.array(local_pos))
+                                    
+                                    edge_handle = self.server.scene.add_box(
+                                        name=f"bboxes/gt_edges_{gt_id}_{i}",
+                                        position=world_pos * VISER_SCALE + jitter,
+                                        scale=np.array(sc) * VISER_SCALE,
+                                        wxyz=wxyz,
+                                        color=color,
+                                        opacity=1.0,
+                                    )
+                                    self.bbox_handles.append(edge_handle)
+                                
+                                label_pos = center.copy()
+                                label_pos[1] -= size[1] / 2
+                                label_handle = self.server.scene.add_label(
+                                    name=f"bboxes/gt_label_{gt_id}",
+                                    text=f"[GT] {gt_class} ({gt_id})",
+                                    position=label_pos * VISER_SCALE,
+                                )
+                                self.label_handles.append(label_handle)
+            except Exception as e:
+                print(f"No se pudieron cargar los bounding boxes GT: {e}")
 
 
 
@@ -673,8 +814,8 @@ class ViserViewer:
         )
         if isinstance(camera, Camera):
             T_world_target = tf.SE3.from_rotation_and_translation(
-                tf.SO3.from_matrix(camera.R.transpose(0, 1).numpy()),
-                camera.T.numpy(),
+                tf.SO3.from_matrix(camera.R.detach().cpu().transpose(0, 1).numpy()),
+                camera.T.detach().cpu().numpy(),
             ).inverse()
         else:
             T_world_target = tf.SE3.from_rotation_and_translation(
@@ -714,8 +855,8 @@ class ViserViewer:
             if not self.active_animation:
                 break
             T_world_target = tf.SE3.from_rotation_and_translation(
-                tf.SO3.from_matrix(camera.R.transpose(0, 1).numpy()),
-                camera.T.numpy(),
+                tf.SO3.from_matrix(camera.R.detach().cpu().transpose(0, 1).numpy()),
+                camera.T.detach().cpu().numpy(),
             ).inverse()
             T_current_target = T_world_current.inverse() @ T_world_target
             for j in range(max_iter):
@@ -749,8 +890,8 @@ class ViserViewer:
             cy = camera.image_height // 2
 
             c2w = tf.SE3.from_rotation_and_translation(
-                tf.SO3.from_matrix(camera.R.transpose(0, 1).numpy()),
-                camera.T.numpy(),
+                tf.SO3.from_matrix(camera.R.detach().cpu().transpose(0, 1).numpy()),
+                camera.T.detach().cpu().numpy(),
             ).inverse()
 
             image = (

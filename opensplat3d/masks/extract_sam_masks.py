@@ -1,5 +1,8 @@
 from pathlib import Path
 from typing import Any
+import torch
+import torch.backends.cudnn
+torch.backends.cudnn.enabled = False
 
 import cv2
 import imageio.v3 as iio
@@ -178,6 +181,7 @@ def main(
         return
 
     print("Loading SAM 2 model")
+    torch.cuda.set_device(0)
     sam2_checkpoint = "ckpts/sam2_hiera_large.pt"
     model_cfg = "sam2_hiera_l"
     sam = build_sam2(model_cfg, sam2_checkpoint, device="cuda")

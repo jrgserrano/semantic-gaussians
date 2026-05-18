@@ -1,0 +1,694 @@
+{
+  "total": 86,
+  "matches": 0,
+  "mismatches": [
+    {
+      "id": "2",
+      "guess": "device",
+      "true": "cabinet",
+      "results_dict": {
+        "A rectangular electronic device with a screen displaying a simple graphic": 0.14794930815696716
+      }
+    },
+    {
+      "id": "3",
+      "guess": "slab",
+      "true": "book",
+      "results_dict": {
+        "A small, gray, possibly concrete or stone slab": 0.1839902102947235
+      }
+    },
+    {
+      "id": "4",
+      "guess": "seed",
+      "true": "book",
+      "results_dict": {
+        "A dried, dark brown bean or seed with a somewhat oval shape": 0.2595973312854767
+      }
+    },
+    {
+      "id": "5",
+      "guess": "indicator",
+      "true": "cushion",
+      "results_dict": {
+        "A thin, elongated object with a central dark stripe and a bright, irregular outline": 0.24915114045143127
+      }
+    },
+    {
+      "id": "6",
+      "guess": "stone",
+      "true": "lamp",
+      "results_dict": {
+        "A small, dark-colored, irregularly shaped object with a rough texture": 0.2756202816963196
+      }
+    },
+    {
+      "id": "7",
+      "guess": "tile",
+      "true": "table",
+      "results_dict": {
+        "A broken, irregularly shaped tile or piece of roofing material, possibly ceramic": 0.2431340217590332
+      }
+    },
+    {
+      "id": "8",
+      "guess": "puck",
+      "true": "cushion",
+      "results_dict": {
+        "A small, rounded object with a central indentation and a grainy appearance": 0.2491534948348999
+      }
+    },
+    {
+      "id": "9",
+      "guess": "device",
+      "true": "sofa",
+      "results_dict": {
+        "A small, rectangular electronic device with a dark screen and a metallic casing": 0.21520709991455078
+      }
+    },
+    {
+      "id": "10",
+      "guess": "plate",
+      "true": "table",
+      "results_dict": {
+        "Rectangular electrical control plate": 0.22791069746017456
+      }
+    },
+    {
+      "id": "11",
+      "guess": "dome",
+      "true": "table",
+      "results_dict": {
+        "A molded plastic component, possibly a lens or cover, with a smooth surface and rounded edges": 0.21679256856441498
+      }
+    },
+    {
+      "id": "12",
+      "guess": "panel",
+      "true": "book",
+      "results_dict": {
+        "A flat, rectangular panel with a slightly rough, matte surface": 0.15841259062290192
+      }
+    },
+    {
+      "id": "13",
+      "guess": "slab",
+      "true": "cushion",
+      "results_dict": {
+        "A simple, pale-colored structural element, possibly a beam or plank": 0.15684792399406433
+      }
+    },
+    {
+      "id": "14",
+      "guess": "bracket",
+      "true": "undefined",
+      "results_dict": {
+        "A dark, angled plastic or metal component, possibly a corner piece or bracket": 0.25872665643692017
+      }
+    },
+    {
+      "id": "16",
+      "guess": "switchplate",
+      "true": "switch",
+      "results_dict": {
+        "A rectangular electrical faceplate with three toggle switches": 0.255867063999176
+      }
+    },
+    {
+      "id": "17",
+      "guess": "block",
+      "true": "window",
+      "results_dict": {
+        "A rectangular, pale-colored block with slightly rounded edges": 0.16555282473564148
+      }
+    },
+    {
+      "id": "18",
+      "guess": "document",
+      "true": "cushion",
+      "results_dict": {
+        "A white paper or plastic sheet with some writing or printing": 0.19766303896903992
+      }
+    },
+    {
+      "id": "19",
+      "guess": "box",
+      "true": "blinds",
+      "results_dict": {
+        "A gray, rectangular box with a slightly textured surface": 0.16895291209220886
+      }
+    },
+    {
+      "id": "20",
+      "guess": "cone",
+      "true": "undefined",
+      "results_dict": {
+        "White ceramic or plastic cone with a slightly textured surface and a rounded tip": 0.21557947993278503
+      }
+    },
+    {
+      "id": "22",
+      "guess": "panel",
+      "true": "blinds",
+      "results_dict": {
+        "Flat, illuminated ceiling tile with a slightly textured surface": 0.24646738171577454
+      }
+    },
+    {
+      "id": "23",
+      "guess": "panel",
+      "true": "wall",
+      "results_dict": {
+        "A triangular shaped plastic panel with a dark spot": 0.1412390172481537
+      }
+    },
+    {
+      "id": "24",
+      "guess": "cover",
+      "true": "undefined",
+      "results_dict": {
+        "A drum-shaped cover for a light source, constructed from a pale material and adorned with abstract colorful markings": 0.2668137550354004
+      }
+    },
+    {
+      "id": "25",
+      "guess": "fragment",
+      "true": "floor",
+      "results_dict": {
+        "A section of a larger, irregularly shaped object, possibly a broken piece of something": 0.20118165016174316
+      }
+    },
+    {
+      "id": "26",
+      "guess": "bar",
+      "true": "window",
+      "results_dict": {
+        "A solid, elongated shape with a slightly textured appearance": 0.1894787847995758
+      }
+    },
+    {
+      "id": "27",
+      "guess": "screen",
+      "true": "table",
+      "results_dict": {
+        "Light-colored, flat panel with minimal surface details, resembling a digital display": 0.21457810699939728
+      }
+    },
+    {
+      "id": "28",
+      "guess": "blade",
+      "true": "window",
+      "results_dict": {
+        "A flat, rectangular piece with a sharp, angled edge, appearing metallic and light-colored": 0.1552002727985382
+      }
+    },
+    {
+      "id": "29",
+      "guess": "panel",
+      "true": "window",
+      "results_dict": {
+        "A square, frosted glass or plastic panel": 0.260699599981308
+      }
+    },
+    {
+      "id": "30",
+      "guess": "shard",
+      "true": "blinds",
+      "results_dict": {
+        "A thin, curved piece of plastic, pale in color and with a slightly rough texture, potentially a component of a larger object": 0.1967531144618988
+      }
+    },
+    {
+      "id": "31",
+      "guess": "lampshade",
+      "true": "wall-plug",
+      "results_dict": {
+        "A lampshade with a rounded rectangular shape, made of a white fabric material, and featuring a slightly textured surface": 0.2875242829322815
+      }
+    },
+    {
+      "id": "32",
+      "guess": "plate",
+      "true": "cushion",
+      "results_dict": {
+        "A flat, gray, possibly metallic plate with rounded corners": 0.1629360169172287
+      }
+    },
+    {
+      "id": "33",
+      "guess": "literature",
+      "true": "wall",
+      "results_dict": {
+        "Small collection of antique literature with faded spines": 0.24284221231937408
+      }
+    },
+    {
+      "id": "34",
+      "guess": "note",
+      "true": "blinds",
+      "results_dict": {
+        "A small, rectangular paper note with faint horizontal lines": 0.19383418560028076
+      }
+    },
+    {
+      "id": "35",
+      "guess": "screen",
+      "true": "indoor-plant",
+      "results_dict": {
+        "A flat, white or gray display screen": 0.20788036286830902
+      }
+    },
+    {
+      "id": "36",
+      "guess": "lantern",
+      "true": "door",
+      "results_dict": {
+        "A glass enclosure containing a white cylindrical candle": 0.2553951144218445
+      }
+    },
+    {
+      "id": "37",
+      "guess": "panel",
+      "true": "undefined",
+      "results_dict": {
+        "Square or rectangular ceiling tile with a light source embedded within": 0.25893867015838623
+      }
+    },
+    {
+      "id": "38",
+      "guess": "vase",
+      "true": "window",
+      "results_dict": {
+        "A textured ceramic vase with a narrow neck and wide base": 0.2831692397594452
+      }
+    },
+    {
+      "id": "39",
+      "guess": "panel",
+      "true": "stool",
+      "results_dict": {
+        "A rectangular panel, light beige, smooth texture, possibly fabric-covered cardboard or thin wood": 0.20249506831169128
+      }
+    },
+    {
+      "id": "40",
+      "guess": "container",
+      "true": "lamp",
+      "results_dict": {
+        "A dark, textured receptacle with a somewhat cylindrical body and a flared rim, appearing to be crafted from a natural substance": 0.2717980146408081
+      }
+    },
+    {
+      "id": "41",
+      "guess": "panel",
+      "true": "stool",
+      "results_dict": {
+        "A flat, rectangular panel with a light blue surface": 0.17587116360664368
+      }
+    },
+    {
+      "id": "42",
+      "guess": "tray",
+      "true": "window",
+      "results_dict": {
+        "A circular tray with a marbled surface and a small container on top": 0.26002755761146545
+      }
+    },
+    {
+      "id": "43",
+      "guess": "panel",
+      "true": "pot",
+      "results_dict": {
+        "A rectangular, light gray panel with a smooth finish": 0.19931992888450623
+      }
+    },
+    {
+      "id": "44",
+      "guess": "panel",
+      "true": "wall-plug",
+      "results_dict": {
+        "Flat, illuminated ceiling tile with a matte finish": 0.22756916284561157
+      }
+    },
+    {
+      "id": "45",
+      "guess": "base",
+      "true": "vase",
+      "results_dict": {
+        "Rectangular dark-colored base with a flat top surface, likely made of wood or a similar material": 0.17139723896980286
+      }
+    },
+    {
+      "id": "47",
+      "guess": "beam",
+      "true": "undefined",
+      "results_dict": {
+        "A structural support beam, dark gray or black, with a slightly curved profile": 0.1948680877685547
+      }
+    },
+    {
+      "id": "48",
+      "guess": "panel",
+      "true": "wall",
+      "results_dict": {
+        "A blank, rectangular panel, possibly made of plastic or metal": 0.24399279057979584
+      }
+    },
+    {
+      "id": "49",
+      "guess": "foot",
+      "true": "lamp",
+      "results_dict": {
+        "A dark, smooth, angled furniture foot or base": 0.2640654444694519
+      }
+    },
+    {
+      "id": "50",
+      "guess": "tabletop",
+      "true": "blinds",
+      "results_dict": {
+        "A smooth, off-white tabletop with rounded corners": 0.18939273059368134
+      }
+    },
+    {
+      "id": "51",
+      "guess": "album",
+      "true": "undefined",
+      "results_dict": {
+        "A flat, rectangular item with a glossy surface displaying an image, possibly a photograph or artwork": 0.1981530785560608
+      }
+    },
+    {
+      "id": "52",
+      "guess": "card",
+      "true": "undefined",
+      "results_dict": {
+        "A small, rectangular plastic card with white surface and faint markings": 0.18703845143318176
+      }
+    },
+    {
+      "id": "53",
+      "guess": "panel",
+      "true": "undefined",
+      "results_dict": {
+        "Flat, illuminated ceiling tile with a slightly textured appearance": 0.24659869074821472
+      }
+    },
+    {
+      "id": "54",
+      "guess": "tray",
+      "true": "undefined",
+      "results_dict": {
+        "A light-brown, textured tray with a slightly raised edge, appearing to be made of a composite material": 0.2145330011844635
+      }
+    },
+    {
+      "id": "55",
+      "guess": "stone",
+      "true": "plant-stand",
+      "results_dict": {
+        "A small, irregularly shaped object with a rough, textured surface, appearing pale gray and white": 0.23073631525039673
+      }
+    },
+    {
+      "id": "56",
+      "guess": "panel",
+      "true": "wall-plug",
+      "results_dict": {
+        "A flat, rectangular panel with a smooth, gray surface": 0.22067902982234955
+      }
+    },
+    {
+      "id": "57",
+      "guess": "sofa",
+      "true": "wall",
+      "results_dict": {
+        "A section of a sofa with a white cushion and dark brown fabric sides": 0.2549307346343994
+      }
+    },
+    {
+      "id": "58",
+      "guess": "panel",
+      "true": "blinds",
+      "results_dict": {
+        "A flat, illuminated ceiling tile, pale pinkish-white, with a smooth surface and a rectangular shape": 0.25582626461982727
+      }
+    },
+    {
+      "id": "59",
+      "guess": "panel",
+      "true": "book",
+      "results_dict": {
+        "Flat, illuminated ceiling tile with a slightly rough texture and a bright, even glow.": 0.26341575384140015
+      }
+    },
+    {
+      "id": "60",
+      "guess": "tile",
+      "true": "rug",
+      "results_dict": {
+        "A rectangular ceiling tile with a central hole and a slightly textured surface": 0.2446967512369156
+      }
+    },
+    {
+      "id": "61",
+      "guess": "tablet",
+      "true": "window",
+      "results_dict": {
+        "A square, reflective surface possibly made of glass or plastic": 0.21531623601913452
+      }
+    },
+    {
+      "id": "62",
+      "guess": "grille",
+      "true": "window",
+      "results_dict": {
+        "Ceiling-mounted airflow regulator with a grid pattern": 0.2574235498905182
+      }
+    },
+    {
+      "id": "63",
+      "guess": "card",
+      "true": "picture",
+      "results_dict": {
+        "A small, rectangular plastic card with faint text or markings on its surface": 0.16568423807621002
+      }
+    },
+    {
+      "id": "64",
+      "guess": "tablet",
+      "true": "vent",
+      "results_dict": {
+        "A flat, pale gray tablet or electronic device": 0.21162933111190796
+      }
+    },
+    {
+      "id": "65",
+      "guess": "monitor",
+      "true": "plate",
+      "results_dict": {
+        "Light-colored, flat panel with a thin black strip at the bottom and faint blue markings": 0.16646891832351685
+      }
+    },
+    {
+      "id": "67",
+      "guess": "gourd",
+      "true": "undefined",
+      "results_dict": {
+        "A decorative gourd-shaped container, possibly made of porcelain or clay, with a light tan color and a slightly rough texture, topped with dried plant stems.": 0.2809087932109833
+      }
+    },
+    {
+      "id": "68",
+      "guess": "monitor",
+      "true": "vent",
+      "results_dict": {
+        "A white panel with a pixelated image or data visualization": 0.19006124138832092
+      }
+    },
+    {
+      "id": "69",
+      "guess": "pebble",
+      "true": "cushion",
+      "results_dict": {
+        "A miniature sculpted form, resembling a stylized animal or abstract shape, made of a dense material": 0.20200324058532715
+      }
+    },
+    {
+      "id": "70",
+      "guess": "volume",
+      "true": "cushion",
+      "results_dict": {
+        "A rectangular object with a patterned cover and visible pages, leaning against a support": 0.18399935960769653
+      }
+    },
+    {
+      "id": "71",
+      "guess": "journal",
+      "true": "cushion",
+      "results_dict": {
+        "A small, closed notebook or journal with a bright yellow cover and a darker base": 0.2056969404220581
+      }
+    },
+    {
+      "id": "72",
+      "guess": "pebble",
+      "true": "cushion",
+      "results_dict": {
+        "A flattened, dark-colored, oblong object with a grainy texture and a possible handle or grip area": 0.17652469873428345
+      }
+    },
+    {
+      "id": "73",
+      "guess": "document",
+      "true": "chair",
+      "results_dict": {
+        "A folded sheet of white paper with visible writing": 0.17943619191646576
+      }
+    },
+    {
+      "id": "74",
+      "guess": "panel",
+      "true": "chair",
+      "results_dict": {
+        "A square, pale gray panel, possibly made of metal or composite material": 0.2611895799636841
+      }
+    },
+    {
+      "id": "75",
+      "guess": "panel",
+      "true": "basket",
+      "results_dict": {
+        "A rectangular, light gray, slightly textured panel, possibly made of plastic or metal": 0.2382272481918335
+      }
+    },
+    {
+      "id": "77",
+      "guess": "panel",
+      "true": "sofa",
+      "results_dict": {
+        "A flat, illuminated panel with a smooth texture": 0.21246746182441711
+      }
+    },
+    {
+      "id": "78",
+      "guess": "tile",
+      "true": "lamp",
+      "results_dict": {
+        "A ceiling tile replacement, made of a lightweight material, pale pinkish-white, with a broken perimeter": 0.24705734848976135
+      }
+    },
+    {
+      "id": "79",
+      "guess": "sheet",
+      "true": "candle",
+      "results_dict": {
+        "A fragment of a thin, flexible sheet material, possibly plastic or cardstock": 0.17019274830818176
+      }
+    },
+    {
+      "id": "80",
+      "guess": "panel",
+      "true": "wall-plug",
+      "results_dict": {
+        "A section of a gray, textured wall panel with a void": 0.1826273500919342
+      }
+    },
+    {
+      "id": "81",
+      "guess": "molding",
+      "true": "undefined",
+      "results_dict": {
+        "Smooth, white, molded plastic object with a slightly irregular outline": 0.26843541860580444
+      }
+    },
+    {
+      "id": "82",
+      "guess": "puck",
+      "true": "wall-plug",
+      "results_dict": {
+        "Flat, dark, irregularly shaped disc with a rough surface and segmented design.": 0.17056524753570557
+      }
+    },
+    {
+      "id": "83",
+      "guess": "pillow",
+      "true": "lamp",
+      "results_dict": {
+        "A soft, rectangular cushion with a slightly rumpled texture, colored in shades of orange and brown.": 0.28984445333480835
+      }
+    },
+    {
+      "id": "84",
+      "guess": "tile",
+      "true": "pillar",
+      "results_dict": {
+        "A damaged ceiling tile exposing a bright, light source": 0.25261756777763367
+      }
+    },
+    {
+      "id": "85",
+      "guess": "fragment",
+      "true": "book",
+      "results_dict": {
+        "A pale, organic form resembling a smoothed stone or bone fragment": 0.21007998287677765
+      }
+    },
+    {
+      "id": "86",
+      "guess": "panel",
+      "true": "blanket",
+      "results_dict": {
+        "A flat, reflective, pale gray panel, possibly made of glass or polished metal": 0.25339385867118835
+      }
+    },
+    {
+      "id": "87",
+      "guess": "leg",
+      "true": "lamp",
+      "results_dict": {
+        "A tapered wooden leg, likely part of furniture": 0.27968645095825195
+      }
+    },
+    {
+      "id": "88",
+      "guess": "pouf",
+      "true": "ceiling",
+      "results_dict": {
+        "Light-colored cushioned seat with a rounded form and patterned weave": 0.2671184539794922
+      }
+    },
+    {
+      "id": "89",
+      "guess": "monitor",
+      "true": "wall",
+      "results_dict": {
+        "Blank digital panel with a thin black line and scattered pixels": 0.18862059712409973
+      }
+    },
+    {
+      "id": "91",
+      "guess": "cushion",
+      "true": "window",
+      "results_dict": {
+        "A decorative pillow featuring an abstract leaf design with muted earthy tones": 0.2813017964363098
+      }
+    },
+    {
+      "id": "92",
+      "guess": "cushion",
+      "true": "book",
+      "results_dict": {
+        "A soft, white, square-shaped decorative pillow, likely filled with down or synthetic fibers": 0.26096823811531067
+      }
+    },
+    {
+      "id": "93",
+      "guess": "note",
+      "true": "table",
+      "results_dict": {
+        "Light-colored, slightly textured rectangular surface with random color accents": 0.20568057894706726
+      }
+    }
+  ]
+}

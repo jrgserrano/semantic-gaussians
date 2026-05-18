@@ -117,6 +117,14 @@ class NerfStudioReader(Reader[tuple[int, dict[str, Any]]]):
             with np.load(masks_path) as level_masks:
                 masks = torch.from_numpy(level_masks[self.mask_level]).long()
 
+        depth: torch.Tensor | None = None
+        if "depth_file_path" in frame:
+            depth_path = self.path / frame["depth_file_path"]
+            if depth_path.exists():
+                depth_img = iio.imread(depth_path)
+                # Convert from millimeters (uint16) to meters (float32)
+                depth = torch.from_numpy(depth_img.astype(np.float32) / 1000.0)
+
         return CameraInfo(
             uid=idx,
             R=R,
@@ -129,4 +137,5 @@ class NerfStudioReader(Reader[tuple[int, dict[str, Any]]]):
             width=width,
             height=height,
             masks=masks,
+            depth=depth,
         )

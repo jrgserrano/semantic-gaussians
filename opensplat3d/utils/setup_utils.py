@@ -40,8 +40,10 @@ def setup_model_from_config(
     model_path = Path(model_params.model_path) if model_path is None else model_path
     
     device = torch.device(model_params.data_device)
-    if device.type == 'cuda' and device.index is not None:
-        if device.index >= torch.cuda.device_count():
+    if device.type == 'cuda':
+        if device.index is None:
+            device = torch.device('cuda:0')
+        elif device.index >= torch.cuda.device_count():
             print(f"Warning: Device {device} not found. Falling back to cuda:0")
             device = torch.device('cuda:0')
     

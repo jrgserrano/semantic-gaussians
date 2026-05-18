@@ -53,12 +53,12 @@ def export_instances_json(model_path: Path, lang_model_type: str = "masqclip"):
         
         n_obs = label_counts.get(label_id, 0)
         
-        results = {}
+        caption = "unknown"
+        similarity = 0.0
         if label_id in descriptions:
             desc_info = descriptions[label_id]
-            results[desc_info["label"]] = desc_info["similarity"]
-        else:
-            results["unknown"] = 0.0
+            caption = desc_info["label"]
+            similarity = desc_info["similarity"]
             
         output_data["instances"][obj_id] = {
             "bbox": {
@@ -66,7 +66,10 @@ def export_instances_json(model_path: Path, lang_model_type: str = "masqclip"):
                 "size": bbox_info["size"]
             },
             "n_observations": n_obs,
-            "results": results
+            "results": {
+                "caption": caption,
+                "similarity": similarity
+            }
         }
     
     # Save JSON

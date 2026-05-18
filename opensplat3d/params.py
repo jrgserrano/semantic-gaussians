@@ -82,6 +82,7 @@ class OptimizationParams:
     
     # Depth parameters
     lambda_depth: float = 1
+    lambda_normal: float = 0.05  # Weight for normal consistency
     depth_loss_type: str = "l1"
     depth_min: float = 0.5  # Ignore depth values below this (Astra noise)
     depth_max: float = 4.0  # Ignore depth values above this (Astra noise)
@@ -102,6 +103,12 @@ class OptimizationParams:
     sor_interval: int = 2000                 # Frequency of Statistical Outlier Removal
     sor_k: int = 16                          # K neighbors for SOR
     sor_std_ratio: float = 1.0               # Std ratio for SOR threshold
+
+    # Pose optimization parameters
+    optimize_poses: bool = False      # Activa el refinamiento de cámaras
+    pose_lr: float = 0.0001           # Tasa de aprendizaje de la pose
+    lambda_pose_smooth: float = 0.1   # Peso del Motion Prior (suavidad temporal)
+    pose_refine_start: int = 0        # Empezar desde el inicio
 
 
 @dataclass

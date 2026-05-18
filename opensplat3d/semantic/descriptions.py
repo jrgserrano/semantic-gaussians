@@ -7,8 +7,8 @@ from PIL import Image
 from tqdm import tqdm
 import os
 import re
-
-from transformers import AutoProcessor, LlavaForConditionalGeneration, BitsAndBytesConfig
+import torch.backends.cudnn
+torch.backends.cudnn.enabled = False
 
 from opensplat3d.gaussian_renderer import render
 from opensplat3d.language import LanguageModel
@@ -28,7 +28,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 # MODEL_ID = "gemini-3-flash-preview" # @param ["gemini-2.5-flash-lite", "gemini-robotics-er-1.5-preview", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-preview", "gemini-3.1-flash-lite-preview", "gemini-3.1-pro-preview"] {"allow-input":true, isTemplate: true}
-MODEL_ID = "gemma-3-27b-it"
+MODEL_ID = "gemma-4-31b-it"
 
 import time
 
@@ -95,13 +95,17 @@ def crop_to_object(image_pil, mask_np, expansion_ratio=1.5):
     height = ymax - ymin
     
     center_x, center_y = xmin + width / 2, ymin + height / 2
-    new_w, new_h = width * expansion_ratio, height * expansion_ratio
+    new_w = max(10, width * expansion_ratio)
+    new_h = max(10, height * expansion_ratio)
     
     left = max(0, int(center_x - new_w / 2))
     top = max(0, int(center_y - new_h / 2))
     right = min(image_pil.width, int(center_x + new_w / 2))
     bottom = min(image_pil.height, int(center_y + new_h / 2))
     
+    if right <= left + 1 or bottom <= top + 1:
+        return image_pil
+        
     return image_pil.crop((left, top, right, bottom))
 
 def prepare_vlm_image(image: torch.Tensor, mask: torch.Tensor, darken=True, zoom=True):
@@ -198,7 +202,7 @@ def find_best_views(instance_id, label_id, setup_params, pipe_params, bg, camera
 
     return selected
 
-def get_vlm_descriptions(instance_id, label, setup_params, pipe_params, bg, bg_color, prompt, cameras, labels, debug=False, debug_dir=None):
+def get_vlm_descriptions(instance_id, label, setup_params, pipe_params, bg, bg_color, prompt, cameras, labels, debug=False, debug_dir=None, vlm_model=None):
 
     label_id = int(label.item())
 
@@ -221,7 +225,10 @@ def get_vlm_descriptions(instance_id, label, setup_params, pipe_params, bg, bg_c
                 
         images_for_vlm.append(vlm_img)
 
-    raw_descriptions = call_gemini(prompt, images_for_vlm)
+    if vlm_model is not None:
+        raw_descriptions = vlm_model.get_description_from_pil(images_for_vlm, prompt)
+    else:
+        raw_descriptions = call_gemini(prompt, images_for_vlm)
     
     return raw_descriptions
 
@@ -232,43 +239,36 @@ class VLMDebugInfo:
     similarity:list[float]
     selected_indices:list[int]
 
-@dataclass
-class VLM:
-    def __init__(self, model_id: str = "Qwen/Qwen2.5-VL-7B-Instruct"):
-        self.model_id = model_id.lower()
-        print(f"Loading VLM model: {model_id}...")
+class OllamaVLM:
+    def __init__(self, model_id: str):
+        self.model_id = model_id.replace("ollama/", "").replace("google/", "")
+        print(f"Loading VLM via Ollama: {self.model_id}...")
+
+    def get_description_from_pil(self, images: list, prompt: str) -> str:
+        import ollama
+        from io import BytesIO
+
+        img_bytes = []
+        for img in images:
+            buffered = BytesIO()
+            img.save(buffered, format="JPEG")
+            img_bytes.append(buffered.getvalue())
         
-        if "qwen" in self.model_id:
-            from transformers import Qwen2_5_VLForConditionalGeneration
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_compute_dtype=torch.bfloat16,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_use_double_quant=True,
+        try:
+            response = ollama.chat(
+                model=self.model_id,
+                messages=[
+                    {
+                        'role': 'user',
+                        'content': prompt,
+                        'images': img_bytes,
+                    },
+                ],
             )
-            self.processor = AutoProcessor.from_pretrained(model_id)
-            self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-                model_id,
-                quantization_config=bnb_config,
-                torch_dtype=torch.bfloat16,
-                device_map="auto",
-                attn_implementation="eager",
-            )
-        else:
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_compute_dtype=torch.bfloat16,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_use_double_quant=True,
-            )
-            self.processor = AutoProcessor.from_pretrained(model_id)
-            self.model = LlavaForConditionalGeneration.from_pretrained(
-                model_id,
-                quantization_config=bnb_config,
-                device_map="auto",
-                torch_dtype=torch.bfloat16,
-                attn_implementation="eager",
-            )
+            return response['message']['content'].strip()
+        except Exception as e:
+            print(f"Failed to call Ollama via library: {e}")
+            return "Error calling Ollama."
 
     @torch.no_grad()
     def get_description(self, zoom_crops: torch.Tensor, full_crops: torch.Tensor | None, prompt: str) -> list[str]:
@@ -436,13 +436,13 @@ def get_best_vlm_description(instance_id, descriptions, setup_params, lang_model
         label_debug_dir.mkdir(parents=True, exist_ok=True)
         with open(label_debug_dir / "results.txt", "w") as f:
             for r in results:
-                f.write(f"{r['desc']}: {r['sim']}\n")
+                f.write(f"{r['desc']} : {r['id']} : {r['sim']}\n")
 
     best_option = min(results, key=lambda x: x['dist'])
 
     if debug:
         with open(label_debug_dir / "best_description.txt", "w") as f:
-            f.write(f"{best_option['desc']} ({best_option['id']}): {best_option['sim']}\n")
+            f.write(f"{best_option['desc']} : {best_option['id']} : {best_option['sim']}\n")
 
     return best_option['desc'], best_option['sim'], best_option['id']
 
@@ -456,9 +456,11 @@ def compute_descriptions(
     pred_threshold: float,
     topk: int,
     vlm_model_id: str,
+    use_local_vlm: bool = False,
     debug: bool = False,
     debug_dir: Path | None = None,
 ):
+    torch.cuda.set_device(0)
     model_path = setup_params.model_path
     if debug and debug_dir is None:
         debug_dir = model_path / "vlm_debug"
@@ -479,7 +481,8 @@ def compute_descriptions(
     # CRITICAL: Fix for illegal memory access during rasterization
     # Since Qwen loaded with device_map="auto", the active CUDA context could be 0, 
     # but the Gaussians are loaded based on setup_params.device.
-    torch.cuda.set_device(setup_params.device)
+    if setup_params.device.type == 'cuda':
+        torch.cuda.set_device(setup_params.device)
     
     labels = torch.from_numpy(np.load(model_path / "clustering" / "labels.npy"))
     unique_labels = labels.unique()
@@ -498,26 +501,38 @@ def compute_descriptions(
         bg,
     )
 
-    # vlm = VLM(vlm_model_id) # Disabled to use API only
+    if use_local_vlm:
+        vlm = OllamaVLM(vlm_model_id)
+    else:
+        vlm = None
 
     prompt = """
     You will receive 3 images of the exact same target object captured from 3 different viewpoints.
     
-    The target object is highlighted with a bright RED OUTLINE in each image. To help you focus, the background outside the red outline is slightly darkened.
-    Analyze the 3 images carefully to understand the object's 3D shape and details. 
+    The target object is highlighted with a bright RED OUTLINE in each image.
+    The background outside the red outline is intentionally darkened to direct your attention to the object.
+    Carefully analyze all 3 views to understand the object's 3D shape, size, and details.
     
-    Identify and describe the object inside the red outline. Focus only on the object's attributes: 
-    - Name or category of the object.
-    - Color, texture, and materials.
-    - Shape and dimensions.
-    - Any text, labels, or patterns written on it.
-    - Probable usage.
+    Describe only the object inside the red outline. Completely ignore the environment, room, and other elements.
+    Focus only on the object's attributes: 
+    - Category or type of object (be specific, not generic)
+    - Dominant color and secondary colors
+    - Observable material and texture
+    - Overall shape and estimated proportions
+    - Any visible markings, labels, numbers, or patterns on the surface
+    - Probable function or usage
 
-    Do NOT mention the room, the scene, or the environment. No conversing, no markdown formatting.
-    
-    You must provide 3 possible candidate descriptions (hypotheses), each representing a valid interpretation of what the object could be and an identifier (one word) for each description.
-    The identifier must be a single word that is most descriptive of the object that will be used to name the object.
-    
+    Generating hypotheses:
+    Provide 3 different interpretations of the object. Each hypothesis must:
+    - Be a CONCISE description (1-2 sentences maximum)
+    - Represent a valid but different categorization from the others
+    - Include a SINGLE-WORD identifier that is the most descriptive name for the object
+
+    Output restrictions:
+    - No additional explanations, no conversation, no markdown formatting.
+    - Only the required format.
+    - Be direct and concise.
+
     Output format: 
     1. [First concise description]:[identifier]
     2. [Second concise description]:[identifier]
@@ -526,26 +541,17 @@ def compute_descriptions(
 
     results = {}
 
-    # top 20 largest clusters to speed up processing
     label_sizes = []
     for idx, label in enumerate(unique_labels):
         if valid_mask[idx]:
             label_sizes.append((idx, (labels == label).sum().item()))
-            
-    # sort by size descending and keep top 20
-    label_sizes.sort(key=lambda x: x[1], reverse=True)
-    top_20_indices = {x[0] for x in label_sizes[:100]}
-    
-    for idx in range(len(valid_mask)):
-        if idx not in top_20_indices:
-            valid_mask[idx] = False
             
     # unique_labels were computed from labels.unique() which are sorted
     for idx, label in enumerate(tqdm(unique_labels, desc="Generating VLM descriptions")):
         if not valid_mask[idx]:
             continue
 
-        vlm_raw_descriptions = get_vlm_descriptions(idx, label, setup_params, pipe_params, bg, bg_color, prompt, cameras, labels, debug, debug_dir)
+        vlm_raw_descriptions = get_vlm_descriptions(idx, label, setup_params, pipe_params, bg, bg_color, prompt, cameras, labels, debug, debug_dir, vlm)
 
         if not vlm_raw_descriptions:
             print(f"No VLM descriptions generated for instance {idx}")
@@ -586,6 +592,7 @@ if __name__ == "__main__":
     parser.add_argument("--levels", type=int, default=0, help="Number of crop levels (0 for whole object)")
     parser.add_argument("--rendering", action="store_true", help="Use rendering for crops")
     parser.add_argument("--vlm", type=str, default="Qwen/Qwen2.5-VL-7B-Instruct", help="VLM model ID")
+    parser.add_argument("--local", action="store_true", help="Use local HuggingFace VLM instead of API")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode to save images and info")
     parser.add_argument("--debug-dir", type=Path, help="Directory to save debug images")
 
@@ -612,6 +619,7 @@ if __name__ == "__main__":
         0.2, # pred_threshold
         args.topk,
         args.vlm,
+        args.local,
         args.debug,
         args.debug_dir,
     )

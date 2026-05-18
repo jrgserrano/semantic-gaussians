@@ -18,6 +18,7 @@ from opensplat3d.data import load_scene_info
 from opensplat3d.eval.scannetpp.export_predictions import export_scenes_predictions
 from opensplat3d.gaussian_model import create_from_pcd, create_from_ply, save_gaussians
 from opensplat3d.gaussian_optimizer import GaussianOptimizer
+from opensplat3d.pose_optimizer import PoseOptimizer
 from opensplat3d.gaussian_renderer import render
 from opensplat3d.language import LanguageModel
 from opensplat3d.language.embed import embed
@@ -201,6 +202,14 @@ def training(
         device,
     )
 
+    train_cams = scene.get_train_cameras()
+    for i, cam in enumerate(train_cams):
+        cam.pose_id = i 
+
+    pose_optimizer = PoseOptimizer(len(scene.get_train_cameras())).to(device)
+    optimizer.optimizer.add_param_group({"params": pose_optimizer.parameters(), "lr": opt_params.pose_lr, "name": "pose"})
+
+
     if checkpoint_path is not None:
         checkpoint = torch.load(checkpoint_path)
         first_iter = checkpoint["iteration"]
@@ -259,6 +268,12 @@ def training(
             else None
         )
 
+        if opt_params.optimize_poses and iteration > opt_params.pose_refine_start:
+            R_adj, T_adj = pose_optimizer(viewpoint_cam.pose_id, viewpoint_cam.R, viewpoint_cam.T)
+            viewpoint_cam.R = R_adj
+            viewpoint_cam.T = T_adj
+            viewpoint_cam.update_matrices()
+
         render_pkg = render(
             viewpoint_cam,
             gaussians,
@@ -302,22 +317,29 @@ def training(
                 "Features are required if optimizing features only"
             )
 
-        # Depth Loss
+        # Depth Loss (Masked for real sensors like Astra)
         depth_loss: torch.Tensor | None = None
         if render_depth and rendered_depth is not None and has_depth:
             gt_depth = viewpoint_cam.original_depth.to(device)
-            depth_loss = l1_loss(rendered_depth, gt_depth)
-            loss += opt_params.lambda_depth * depth_loss
+            valid_mask = gt_depth > 0
+            if valid_mask.any():
+                depth_loss = l1_loss(rendered_depth[valid_mask], gt_depth[valid_mask])
+                loss += opt_params.lambda_depth * depth_loss
         
         # Normal Consistency Loss
-        """
-        lambda_normal = 0.05
-
-        normals = render_normals(viewpoint_cam, gaussians, pipe_params, config, device)
-        normals_gt = get_gt_normals(viewpoint_cam, device)
-        loss_norm = normal_consistency_loss(normals, normals_gt)
-        loss += lambda_normal * loss_norm
-        """
+        loss_norm: torch.Tensor | None = None
+        if opt_params.lambda_normal > 0:
+            if hasattr(viewpoint_cam, "normal") and viewpoint_cam.normal is not None:
+                normals_gt = viewpoint_cam.normal.to(device)
+                normals = render_normals(viewpoint_cam, gaussians, pipe_params, config, device)
+                loss_norm = normal_consistency_loss(normals, normals_gt)
+                loss += opt_params.lambda_normal * loss_norm
+            elif render_depth and rendered_depth is not None:
+                # Fallback: calcular normales desde el render de profundidad o Astra
+                normals = render_normals(viewpoint_cam, gaussians, pipe_params, config, device)
+                normals_gt = get_gt_normals(viewpoint_cam, device)
+                loss_norm = normal_consistency_loss(normals, normals_gt)
+                loss += opt_params.lambda_normal * loss_norm
 
         # Variance loss
         var_loss: torch.Tensor | None = None
@@ -360,20 +382,12 @@ def training(
             except Exception:
                 pass
         
-        # Geometric losses (FeatureSLAM)
-        """
-        warmup_weight = min(1.0, iteration / 2000)
-
-        erank_loss: torch.Tensor | None = None
-        if opt_params.lambda_erank > 0 and warmup_weight > 0 and iteration % 10 == 0:
-            erank_loss = get_erank_loss(gaussians.get_scaling)
-            loss += warmup_weight * opt_params.lambda_erank * erank_loss
-
+        # Geometric losses (Thinness Loss for smooth surfaces)
         thin_loss: torch.Tensor | None = None
+        warmup_weight = min(1.0, iteration / 2000)
         if opt_params.lambda_thin > 0 and warmup_weight > 0 and iteration % 10 == 0:
             thin_loss = get_thinness_loss(gaussians.get_scaling)
             loss += warmup_weight * opt_params.lambda_thin * thin_loss
-        """
         # RGB Component of Importance
         if Ll1 is not None and not only_features:
             try:
@@ -432,6 +446,8 @@ def training(
                     postfix["var"] = f"{var_loss:.4e}"
                 if depth_loss is not None:
                     postfix["depth"] = f"{depth_loss:.4e}"
+                if loss_norm is not None:
+                    postfix["normal"] = f"{loss_norm:.4e}"
                 #if erank_loss is not None:
                 #    postfix["erank"] = f"{erank_loss:.4e}"
                 #if thin_loss is not None:
@@ -450,8 +466,6 @@ def training(
                         "log": True,
                     },
                     "variance_loss": {"value": var_loss, "log": True},
-                    #"erank_loss": {"value": erank_loss, "log": True},
-                    #"thinness_loss": {"value": thin_loss, "log": True},
                 }
                 if inst2d_loss is not None:
                     for k, v in inst2d_loss.items():
@@ -583,54 +597,6 @@ def training(
                         size_threshold,
                     )
 
-                    # New: Semantic instability densification
-                    if opt_params.lambda_instability_densify > 0:
-                        num_split = optimizer.densify_and_split_by_instability(
-                            opt_params.lambda_instability_densify,
-                            scene.cameras_extent
-                        )
-                        if num_split > 0:
-                            print(f"\n[ITER {iteration}] Semantic Split: {num_split} points (Threshold: {curr_grad_threshold:.5f})")
-
-                    # Smart Refinement (New)
-                    optimizer.smart_refine(iteration, opt_params, scene.cameras_extent)
-
-                    if opt_params.semantic_pruning_interval > 0 and iteration % curr_prune_interval == 0:
-                        # LEGO-SLAM Redundancy check (every 2 intervals)
-                        if iteration % (opt_params.semantic_pruning_interval * 2) == 0:
-                            stats_lego = optimizer.redundancy_pruning(opt_params.tau_dist, opt_params.tau_sim)
-                            stats_lego["reason"] = "Redundancy"
-                            stats_lego["iteration"] = iteration
-                            pruning_history.append(stats_lego)
-
-                        # Semantic Importance Pruning (Percentile based)
-                        stats_sem = optimizer.semantic_pruning(curr_percentile)
-                        stats_sem["reason"] = "Semantic"
-                        stats_sem["iteration"] = iteration
-                        pruning_history.append(stats_sem)
-
-                        # OpenGS-SLAM Boundary check
-                        stats_ogs = optimizer.scale_guided_pruning(opt_params.theta_scale, opt_params.theta_ratio)
-                        stats_ogs["reason"] = "ScaleBoundary"
-                        stats_ogs["iteration"] = iteration
-                        pruning_history.append(stats_ogs)
-                        
-                        # New: Statistical Outlier Removal
-                        if opt_params.sor_interval > 0 and iteration % (curr_prune_interval * 2) == 0:
-                            stats_sor = optimizer.statistical_outlier_removal_pruning(opt_params.sor_k, opt_params.sor_std_ratio)
-                            stats_sor["reason"] = "SOR_Floaters"
-                            stats_sor["iteration"] = iteration
-                            pruning_history.append(stats_sor)
-
-                        # Save Log
-                        import json
-                        with open(pruning_log_path, "w") as f:
-                            json.dump(pruning_history, f, indent=4)
-
-                        # Reset tracking after pruning
-                        optimizer.importance_accum.fill_(0)
-                        optimizer.denom.fill_(0)
-
                 if iteration % opt_params.opacity_reset_interval == 0 or (
                     model_params.white_background
                     and iteration == opt_params.densify_from_iter
@@ -639,15 +605,7 @@ def training(
 
             # Optimizer step
             if iteration < opt_params.iterations:
-                feat_old = None
-                if gaussians._features is not None:
-                    feat_old = gaussians._features.detach().clone()
-
                 optimizer.optimizer.step()
-
-                if feat_old is not None:
-                    optimizer.record_feature_delta(feat_old, gaussians._features)
-
                 optimizer.optimizer.zero_grad(set_to_none=True)
 
             if iteration in checkpoint_iterations:
@@ -740,32 +698,6 @@ if __name__ == "__main__":
             config.cluster.min_samples,
             config.cluster.eps,
         )
-        """
-        # Record mIoU and mBIoU metrics after clustering
-        print("Evaluating final semantic metrics (mIoU/mBIoU)...")
-        from opensplat3d.eval.instance_eval import evaluate_replica_instance_metrics
-        labels_path = output_dir / "labels.npy"
-        if labels_path.exists():
-            labels = torch.from_numpy(np.load(labels_path))
-            # Test metrics
-            miou_test, mbiou_test = evaluate_replica_instance_metrics(gaussians, scene, scene.get_test_cameras(), labels, device)
-            # Train metrics (subset for speed)
-            train_cameras_subset = [scene.get_train_cameras()[i] for i in range(0, len(scene.get_train_cameras()), 10)]
-            miou_train, mbiou_train = evaluate_replica_instance_metrics(gaussians, scene, train_cameras_subset, labels, device)
-            
-            history["miou_test"] = float(miou_test)
-            history["mbiou_test"] = float(mbiou_test)
-            history["miou_train"] = float(miou_train)
-            history["mbiou_train"] = float(mbiou_train)
-            
-            print(f"Final Test mIoU: {miou_test:.4f}, mBIoU: {mbiou_test:.4f}")
-            print(f"Final Train mIoU: {miou_train:.4f}, mBIoU: {mbiou_train:.4f}")
-
-        # Final save of stats
-        with open(stats_path, "w") as f:
-            import json
-            json.dump(history, f, indent=4)
-        """
 
         # language is based on clustering
         if config.lang.enabled:

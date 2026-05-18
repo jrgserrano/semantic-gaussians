@@ -139,6 +139,14 @@ class ColmapReader(Reader[int]):
                 with np.load(masks_path) as level_masks:
                     masks = torch.from_numpy(level_masks[self.mask_level]).long()
 
+        depth: torch.Tensor | None = None
+        depth_path = image_path.parent.parent / "depth" / f"{image_path.stem}.png"
+        if depth_path.exists():
+            depth_np = iio.imread(depth_path).astype(np.float32)
+            # Normalize from uint16 (0-65535) to a relative range. 
+            # Note: For monocular depth, scale is relative.
+            depth = torch.from_numpy(depth_np).unsqueeze(0) / 65535.0
+
         return CameraInfo(
             uid=extr.id,
             R=R,
@@ -151,4 +159,5 @@ class ColmapReader(Reader[int]):
             width=width,
             height=height,
             masks=masks,
+            depth=depth,
         )

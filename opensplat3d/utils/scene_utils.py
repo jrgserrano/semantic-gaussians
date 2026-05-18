@@ -24,6 +24,9 @@ class CameraInfo(NamedTuple):
     height: int
     masks: torch.Tensor | None
     depth: torch.Tensor | None = None
+    cx: float | None = None
+    cy: float | None = None
+    normal: torch.Tensor | None = None
 
 
 class BasicPointCloud(NamedTuple):

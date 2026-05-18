@@ -1,0 +1,1752 @@
+[
+    {
+        "instance_key": "card_0",
+        "predicted_id_without_number": "card",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "White and light-beige rectangular card or label with a dark horizontal line": 0.1852363646030426
+        }
+    },
+    {
+        "instance_key": "device_2",
+        "predicted_id_without_number": "device",
+        "best_iou": 2.35342495787578e-07,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular electronic device with a screen displaying a simple graphic": 0.14794930815696716
+        }
+    },
+    {
+        "instance_key": "slab_3",
+        "predicted_id_without_number": "slab",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, gray, possibly concrete or stone slab": 0.1839902102947235
+        }
+    },
+    {
+        "instance_key": "seed_4",
+        "predicted_id_without_number": "seed",
+        "best_iou": 1.058534146736741e-05,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A dried, dark brown bean or seed with a somewhat oval shape": 0.2595973312854767
+        }
+    },
+    {
+        "instance_key": "indicator_5",
+        "predicted_id_without_number": "indicator",
+        "best_iou": 0.00016160836793547103,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A thin, elongated object with a central dark stripe and a bright, irregular outline": 0.24915114045143127
+        }
+    },
+    {
+        "instance_key": "stone_6",
+        "predicted_id_without_number": "stone",
+        "best_iou": 1.4290669411468559e-05,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, dark-colored, irregularly shaped object with a rough texture": 0.2756202816963196
+        }
+    },
+    {
+        "instance_key": "tile_7",
+        "predicted_id_without_number": "tile",
+        "best_iou": 4.020811902213678e-05,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A broken, irregularly shaped tile or piece of roofing material, possibly ceramic": 0.2431340217590332
+        }
+    },
+    {
+        "instance_key": "puck_8",
+        "predicted_id_without_number": "puck",
+        "best_iou": 0.027986858671404578,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, rounded object with a central indentation and a grainy appearance": 0.2491534948348999
+        }
+    },
+    {
+        "instance_key": "device_9",
+        "predicted_id_without_number": "device",
+        "best_iou": 5.6585293565018954e-05,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, rectangular electronic device with a dark screen and a metallic casing": 0.21520709991455078
+        }
+    },
+    {
+        "instance_key": "plate_10",
+        "predicted_id_without_number": "plate",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Rectangular electrical control plate": 0.22791069746017456
+        }
+    },
+    {
+        "instance_key": "dome_11",
+        "predicted_id_without_number": "dome",
+        "best_iou": 0.000525840495643389,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A molded plastic component, possibly a lens or cover, with a smooth surface and rounded edges": 0.21679256856441498
+        }
+    },
+    {
+        "instance_key": "panel_12",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.0041480815012690546,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, rectangular panel with a slightly rough, matte surface": 0.15841259062290192
+        }
+    },
+    {
+        "instance_key": "slab_13",
+        "predicted_id_without_number": "slab",
+        "best_iou": 0.005051227396060507,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A simple, pale-colored structural element, possibly a beam or plank": 0.15684792399406433
+        }
+    },
+    {
+        "instance_key": "bracket_14",
+        "predicted_id_without_number": "bracket",
+        "best_iou": 0.00020813438780344076,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A dark, angled plastic or metal component, possibly a corner piece or bracket": 0.25872665643692017
+        }
+    },
+    {
+        "instance_key": "switchplate_16",
+        "predicted_id_without_number": "switchplate",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular electrical faceplate with three toggle switches": 0.255867063999176
+        }
+    },
+    {
+        "instance_key": "block_17",
+        "predicted_id_without_number": "block",
+        "best_iou": 0.0038232373642116627,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular, pale-colored block with slightly rounded edges": 0.16555282473564148
+        }
+    },
+    {
+        "instance_key": "document_18",
+        "predicted_id_without_number": "document",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A white paper or plastic sheet with some writing or printing": 0.19766303896903992
+        }
+    },
+    {
+        "instance_key": "box_19",
+        "predicted_id_without_number": "box",
+        "best_iou": 0.00369490053949243,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A gray, rectangular box with a slightly textured surface": 0.16895291209220886
+        }
+    },
+    {
+        "instance_key": "cone_20",
+        "predicted_id_without_number": "cone",
+        "best_iou": 0.00251866795503263,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "White ceramic or plastic cone with a slightly textured surface and a rounded tip": 0.21557947993278503
+        }
+    },
+    {
+        "instance_key": "panel_22",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.05195597533692449,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat, illuminated ceiling tile with a slightly textured surface": 0.24646738171577454
+        }
+    },
+    {
+        "instance_key": "panel_23",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.004640039741304634,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A triangular shaped plastic panel with a dark spot": 0.1412390172481537
+        }
+    },
+    {
+        "instance_key": "cover_24",
+        "predicted_id_without_number": "cover",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A drum-shaped cover for a light source, constructed from a pale material and adorned with abstract colorful markings": 0.2668137550354004
+        }
+    },
+    {
+        "instance_key": "fragment_25",
+        "predicted_id_without_number": "fragment",
+        "best_iou": 0.0005169243270627136,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A section of a larger, irregularly shaped object, possibly a broken piece of something": 0.20118165016174316
+        }
+    },
+    {
+        "instance_key": "bar_26",
+        "predicted_id_without_number": "bar",
+        "best_iou": 0.0068934777511826355,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A solid, elongated shape with a slightly textured appearance": 0.1894787847995758
+        }
+    },
+    {
+        "instance_key": "screen_27",
+        "predicted_id_without_number": "screen",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Light-colored, flat panel with minimal surface details, resembling a digital display": 0.21457810699939728
+        }
+    },
+    {
+        "instance_key": "blade_28",
+        "predicted_id_without_number": "blade",
+        "best_iou": 0.003345849119144615,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, rectangular piece with a sharp, angled edge, appearing metallic and light-colored": 0.1552002727985382
+        }
+    },
+    {
+        "instance_key": "panel_29",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.0005398495374717286,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A square, frosted glass or plastic panel": 0.260699599981308
+        }
+    },
+    {
+        "instance_key": "shard_30",
+        "predicted_id_without_number": "shard",
+        "best_iou": 0.00047164308790267006,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A thin, curved piece of plastic, pale in color and with a slightly rough texture, potentially a component of a larger object": 0.1967531144618988
+        }
+    },
+    {
+        "instance_key": "lampshade_31",
+        "predicted_id_without_number": "lampshade",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A lampshade with a rounded rectangular shape, made of a white fabric material, and featuring a slightly textured surface": 0.2875242829322815
+        }
+    },
+    {
+        "instance_key": "plate_32",
+        "predicted_id_without_number": "plate",
+        "best_iou": 0.02030624947007663,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, gray, possibly metallic plate with rounded corners": 0.1629360169172287
+        }
+    },
+    {
+        "instance_key": "literature_33",
+        "predicted_id_without_number": "literature",
+        "best_iou": 0.2838270197204395,
+        "matched_gt_class": "book",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Small collection of antique literature with faded spines": 0.24284221231937408
+        }
+    },
+    {
+        "instance_key": "note_34",
+        "predicted_id_without_number": "note",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, rectangular paper note with faint horizontal lines": 0.19383418560028076
+        }
+    },
+    {
+        "instance_key": "screen_35",
+        "predicted_id_without_number": "screen",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, white or gray display screen": 0.20788036286830902
+        }
+    },
+    {
+        "instance_key": "lantern_36",
+        "predicted_id_without_number": "lantern",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A glass enclosure containing a white cylindrical candle": 0.2553951144218445
+        }
+    },
+    {
+        "instance_key": "panel_37",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.005255169160667305,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Square or rectangular ceiling tile with a light source embedded within": 0.25893867015838623
+        }
+    },
+    {
+        "instance_key": "vase_38",
+        "predicted_id_without_number": "vase",
+        "best_iou": 0.07109223407976627,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A textured ceramic vase with a narrow neck and wide base": 0.2831692397594452
+        }
+    },
+    {
+        "instance_key": "panel_39",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.03327100181787535,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular panel, light beige, smooth texture, possibly fabric-covered cardboard or thin wood": 0.20249506831169128
+        }
+    },
+    {
+        "instance_key": "container_40",
+        "predicted_id_without_number": "container",
+        "best_iou": 0.001178620530259086,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A dark, textured receptacle with a somewhat cylindrical body and a flared rim, appearing to be crafted from a natural substance": 0.2717980146408081
+        }
+    },
+    {
+        "instance_key": "panel_41",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.013873537081761669,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, rectangular panel with a light blue surface": 0.17587116360664368
+        }
+    },
+    {
+        "instance_key": "tray_42",
+        "predicted_id_without_number": "tray",
+        "best_iou": 0.0007126141360268229,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A circular tray with a marbled surface and a small container on top": 0.26002755761146545
+        }
+    },
+    {
+        "instance_key": "panel_43",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular, light gray panel with a smooth finish": 0.19931992888450623
+        }
+    },
+    {
+        "instance_key": "panel_44",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.026129909628929374,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat, illuminated ceiling tile with a matte finish": 0.22756916284561157
+        }
+    },
+    {
+        "instance_key": "base_45",
+        "predicted_id_without_number": "base",
+        "best_iou": 0.005023172134815069,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Rectangular dark-colored base with a flat top surface, likely made of wood or a similar material": 0.17139723896980286
+        }
+    },
+    {
+        "instance_key": "beam_47",
+        "predicted_id_without_number": "beam",
+        "best_iou": 0.0038969378388606104,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A structural support beam, dark gray or black, with a slightly curved profile": 0.1948680877685547
+        }
+    },
+    {
+        "instance_key": "panel_48",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.00041310562060205085,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A blank, rectangular panel, possibly made of plastic or metal": 0.24399279057979584
+        }
+    },
+    {
+        "instance_key": "foot_49",
+        "predicted_id_without_number": "foot",
+        "best_iou": 0.0012916888507961953,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A dark, smooth, angled furniture foot or base": 0.2640654444694519
+        }
+    },
+    {
+        "instance_key": "tabletop_50",
+        "predicted_id_without_number": "tabletop",
+        "best_iou": 0.02939553620625976,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A smooth, off-white tabletop with rounded corners": 0.18939273059368134
+        }
+    },
+    {
+        "instance_key": "album_51",
+        "predicted_id_without_number": "album",
+        "best_iou": 0.00031919219004106534,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, rectangular item with a glossy surface displaying an image, possibly a photograph or artwork": 0.1981530785560608
+        }
+    },
+    {
+        "instance_key": "card_52",
+        "predicted_id_without_number": "card",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, rectangular plastic card with white surface and faint markings": 0.18703845143318176
+        }
+    },
+    {
+        "instance_key": "panel_53",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.011795916985507169,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat, illuminated ceiling tile with a slightly textured appearance": 0.24659869074821472
+        }
+    },
+    {
+        "instance_key": "tray_54",
+        "predicted_id_without_number": "tray",
+        "best_iou": 0.014149800016948386,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A light-brown, textured tray with a slightly raised edge, appearing to be made of a composite material": 0.2145330011844635
+        }
+    },
+    {
+        "instance_key": "stone_55",
+        "predicted_id_without_number": "stone",
+        "best_iou": 0.0003871955597051265,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, irregularly shaped object with a rough, textured surface, appearing pale gray and white": 0.23073631525039673
+        }
+    },
+    {
+        "instance_key": "panel_56",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, rectangular panel with a smooth, gray surface": 0.22067902982234955
+        }
+    },
+    {
+        "instance_key": "sofa_57",
+        "predicted_id_without_number": "sofa",
+        "best_iou": 0.0015348312642929492,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A section of a sofa with a white cushion and dark brown fabric sides": 0.2549307346343994
+        }
+    },
+    {
+        "instance_key": "panel_58",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.025622269650644777,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, illuminated ceiling tile, pale pinkish-white, with a smooth surface and a rectangular shape": 0.25582626461982727
+        }
+    },
+    {
+        "instance_key": "panel_59",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.01376406615433206,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat, illuminated ceiling tile with a slightly rough texture and a bright, even glow.": 0.26341575384140015
+        }
+    },
+    {
+        "instance_key": "tile_60",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.027230378266365707,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular ceiling tile with a central hole and a slightly textured surface": 0.2446967512369156
+        }
+    },
+    {
+        "instance_key": "tablet_61",
+        "predicted_id_without_number": "tablet",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A square, reflective surface possibly made of glass or plastic": 0.21531623601913452
+        }
+    },
+    {
+        "instance_key": "grille_62",
+        "predicted_id_without_number": "grille",
+        "best_iou": 0.006389459679805198,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Ceiling-mounted airflow regulator with a grid pattern": 0.2574235498905182
+        }
+    },
+    {
+        "instance_key": "card_63",
+        "predicted_id_without_number": "card",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, rectangular plastic card with faint text or markings on its surface": 0.16568423807621002
+        }
+    },
+    {
+        "instance_key": "tablet_64",
+        "predicted_id_without_number": "tablet",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, pale gray tablet or electronic device": 0.21162933111190796
+        }
+    },
+    {
+        "instance_key": "monitor_65",
+        "predicted_id_without_number": "monitor",
+        "best_iou": 0.0005518495809873123,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Light-colored, flat panel with a thin black strip at the bottom and faint blue markings": 0.16646891832351685
+        }
+    },
+    {
+        "instance_key": "gourd_67",
+        "predicted_id_without_number": "gourd",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A decorative gourd-shaped container, possibly made of porcelain or clay, with a light tan color and a slightly rough texture, topped with dried plant stems.": 0.2809087932109833
+        }
+    },
+    {
+        "instance_key": "monitor_68",
+        "predicted_id_without_number": "monitor",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A white panel with a pixelated image or data visualization": 0.19006124138832092
+        }
+    },
+    {
+        "instance_key": "pebble_69",
+        "predicted_id_without_number": "pebble",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A miniature sculpted form, resembling a stylized animal or abstract shape, made of a dense material": 0.20200324058532715
+        }
+    },
+    {
+        "instance_key": "volume_70",
+        "predicted_id_without_number": "volume",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular object with a patterned cover and visible pages, leaning against a support": 0.18399935960769653
+        }
+    },
+    {
+        "instance_key": "journal_71",
+        "predicted_id_without_number": "journal",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, closed notebook or journal with a bright yellow cover and a darker base": 0.2056969404220581
+        }
+    },
+    {
+        "instance_key": "pebble_72",
+        "predicted_id_without_number": "pebble",
+        "best_iou": 0.002684872501669501,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flattened, dark-colored, oblong object with a grainy texture and a possible handle or grip area": 0.17652469873428345
+        }
+    },
+    {
+        "instance_key": "document_73",
+        "predicted_id_without_number": "document",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A folded sheet of white paper with visible writing": 0.17943619191646576
+        }
+    },
+    {
+        "instance_key": "panel_74",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A square, pale gray panel, possibly made of metal or composite material": 0.2611895799636841
+        }
+    },
+    {
+        "instance_key": "panel_75",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular, light gray, slightly textured panel, possibly made of plastic or metal": 0.2382272481918335
+        }
+    },
+    {
+        "instance_key": "surface_76",
+        "predicted_id_without_number": "surface",
+        "best_iou": 0.0012737801412835168,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, dark-colored surface, potentially a section of furniture or wall covering": 0.2362060695886612
+        }
+    },
+    {
+        "instance_key": "panel_77",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, illuminated panel with a smooth texture": 0.21246746182441711
+        }
+    },
+    {
+        "instance_key": "tile_78",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.02513948779706595,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A ceiling tile replacement, made of a lightweight material, pale pinkish-white, with a broken perimeter": 0.24705734848976135
+        }
+    },
+    {
+        "instance_key": "sheet_79",
+        "predicted_id_without_number": "sheet",
+        "best_iou": 0.006453421375917543,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A fragment of a thin, flexible sheet material, possibly plastic or cardstock": 0.17019274830818176
+        }
+    },
+    {
+        "instance_key": "panel_80",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.0018647705323592745,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A section of a gray, textured wall panel with a void": 0.1826273500919342
+        }
+    },
+    {
+        "instance_key": "molding_81",
+        "predicted_id_without_number": "molding",
+        "best_iou": 0.005811672902696839,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Smooth, white, molded plastic object with a slightly irregular outline": 0.26843541860580444
+        }
+    },
+    {
+        "instance_key": "puck_82",
+        "predicted_id_without_number": "puck",
+        "best_iou": 0.0009240446183883899,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat, dark, irregularly shaped disc with a rough surface and segmented design.": 0.17056524753570557
+        }
+    },
+    {
+        "instance_key": "pillow_83",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.026351595105073535,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A soft, rectangular cushion with a slightly rumpled texture, colored in shades of orange and brown.": 0.28984445333480835
+        }
+    },
+    {
+        "instance_key": "tile_84",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.018684742716653983,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A damaged ceiling tile exposing a bright, light source": 0.25261756777763367
+        }
+    },
+    {
+        "instance_key": "fragment_85",
+        "predicted_id_without_number": "fragment",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A pale, organic form resembling a smoothed stone or bone fragment": 0.21007998287677765
+        }
+    },
+    {
+        "instance_key": "panel_86",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.0006224054052738313,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A flat, reflective, pale gray panel, possibly made of glass or polished metal": 0.25339385867118835
+        }
+    },
+    {
+        "instance_key": "leg_87",
+        "predicted_id_without_number": "leg",
+        "best_iou": 3.327730800392344e-06,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A tapered wooden leg, likely part of furniture": 0.27968645095825195
+        }
+    },
+    {
+        "instance_key": "pouf_88",
+        "predicted_id_without_number": "pouf",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Light-colored cushioned seat with a rounded form and patterned weave": 0.2671184539794922
+        }
+    },
+    {
+        "instance_key": "monitor_89",
+        "predicted_id_without_number": "monitor",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Blank digital panel with a thin black line and scattered pixels": 0.18862059712409973
+        }
+    },
+    {
+        "instance_key": "cushion_91",
+        "predicted_id_without_number": "cushion",
+        "best_iou": 0.01780078279909542,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A decorative pillow featuring an abstract leaf design with muted earthy tones": 0.2813017964363098
+        }
+    },
+    {
+        "instance_key": "cushion_92",
+        "predicted_id_without_number": "cushion",
+        "best_iou": 0.019902128861543734,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A soft, white, square-shaped decorative pillow, likely filled with down or synthetic fibers": 0.26096823811531067
+        }
+    },
+    {
+        "instance_key": "note_93",
+        "predicted_id_without_number": "note",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Light-colored, slightly textured rectangular surface with random color accents": 0.20568057894706726
+        }
+    },
+    {
+        "instance_key": "ceilinglight_94",
+        "predicted_id_without_number": "ceilinglight",
+        "best_iou": 0.015527486025634604,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Square or rectangular ceiling light with a translucent cover, likely made of plastic or glass": 0.22727125883102417
+        }
+    },
+    {
+        "instance_key": "paper_95",
+        "predicted_id_without_number": "paper",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Blank paper sheet with slight discoloration": 0.18526236712932587
+        }
+    },
+    {
+        "instance_key": "gadget_96",
+        "predicted_id_without_number": "gadget",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Small rectangular device with a screen and buttons, likely made of plastic": 0.25238513946533203
+        }
+    },
+    {
+        "instance_key": "filler_97",
+        "predicted_id_without_number": "filler",
+        "best_iou": 0.01757818060303524,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A light blue, amorphous form with a matte finish, possibly a repair or filler material": 0.14864879846572876
+        }
+    },
+    {
+        "instance_key": "channel_98",
+        "predicted_id_without_number": "channel",
+        "best_iou": 0.013621800530692639,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A recessed channel or groove, likely made of plastic or metal": 0.221001997590065
+        }
+    },
+    {
+        "instance_key": "treat_99",
+        "predicted_id_without_number": "treat",
+        "best_iou": 0.06156849442633405,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Decorative chocolate with a patterned surface and a circular form": 0.24181437492370605
+        }
+    },
+    {
+        "instance_key": "sculpture_100",
+        "predicted_id_without_number": "sculpture",
+        "best_iou": 0.0018320124324773396,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A decorative, translucent container with a pedestal base, filled with abstract, shimmering plant-like forms": 0.27555471658706665
+        }
+    },
+    {
+        "instance_key": "pouf_103",
+        "predicted_id_without_number": "pouf",
+        "best_iou": 0.5252666957323049,
+        "matched_gt_class": "stool",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Round cushioned stool with a light beige color and a slightly worn appearance": 0.2857542932033539
+        }
+    },
+    {
+        "instance_key": "tile_104",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.007653307851444618,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular ceiling tile with a hole, likely made of fiberboard or similar material, off-white in color": 0.25789517164230347
+        }
+    },
+    {
+        "instance_key": "monitor_105",
+        "predicted_id_without_number": "monitor",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Illuminated panel with a blank interface": 0.18903446197509766
+        }
+    },
+    {
+        "instance_key": "luminaire_106",
+        "predicted_id_without_number": "luminaire",
+        "best_iou": 0.023839892031851682,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Ceiling-mounted light source with a rectangular shape and a glowing interior": 0.23347163200378418
+        }
+    },
+    {
+        "instance_key": "pillow_107",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.005999824866137643,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "White sofa cushion with a patterned face and smooth sides": 0.24474191665649414
+        }
+    },
+    {
+        "instance_key": "rug_108",
+        "predicted_id_without_number": "rug",
+        "best_iou": 0.06797339889560752,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Dark-colored rectangular rug with a slightly irregular shape": 0.24414581060409546
+        }
+    },
+    {
+        "instance_key": "whiteboard_109",
+        "predicted_id_without_number": "whiteboard",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Smooth, white surface with a black bar, possibly for writing": 0.19190651178359985
+        }
+    },
+    {
+        "instance_key": "tile_111",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.027959744900878925,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Recessed ceiling tile with a circular opening": 0.21040625870227814
+        }
+    },
+    {
+        "instance_key": "panel_112",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.07411078422138784,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat panel light with a bright white surface and red-highlighted edges": 0.22525930404663086
+        }
+    },
+    {
+        "instance_key": "pillow_113",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.5267449795224289,
+        "matched_gt_class": "cushion",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular cushion with a slightly rumpled surface": 0.2210564762353897
+        }
+    },
+    {
+        "instance_key": "seat_114",
+        "predicted_id_without_number": "seat",
+        "best_iou": 0.3066793103097094,
+        "matched_gt_class": "chair",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Wingback chair with studded detailing and a square pillow": 0.28029802441596985
+        }
+    },
+    {
+        "instance_key": "display_115",
+        "predicted_id_without_number": "display",
+        "best_iou": 0.00029114998816798677,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Rectangular electronic device with a striped pattern and red indicator lights": 0.14808595180511475
+        }
+    },
+    {
+        "instance_key": "fragment_116",
+        "predicted_id_without_number": "fragment",
+        "best_iou": 0.009216122750433261,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Light-colored, molded plastic fragment with a non-uniform outline": 0.13199970126152039
+        }
+    },
+    {
+        "instance_key": "paper_117",
+        "predicted_id_without_number": "paper",
+        "best_iou": 0.0003529112794055863,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A blank, pale sheet with a few colored specks": 0.19584834575653076
+        }
+    },
+    {
+        "instance_key": "luminaire_118",
+        "predicted_id_without_number": "luminaire",
+        "best_iou": 0.00943462288910134,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Ceiling-mounted light fixture with a bright, even glow and a rectangular shape": 0.23319664597511292
+        }
+    },
+    {
+        "instance_key": "panel_119",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.017888515522153717,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A recessed lighting panel with a textured surface and a surrounding frame": 0.19085811078548431
+        }
+    },
+    {
+        "instance_key": "panel_120",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.02296808802314582,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Ceiling tile replacement, a smooth white panel with a slightly warped shape": 0.278034508228302
+        }
+    },
+    {
+        "instance_key": "gallery_121",
+        "predicted_id_without_number": "gallery",
+        "best_iou": 0.004514972217801717,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A framed display of multiple photographs or artwork pieces": 0.2353701889514923
+        }
+    },
+    {
+        "instance_key": "screen_122",
+        "predicted_id_without_number": "screen",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular, white display screen or panel with a reflective surface": 0.23506957292556763
+        }
+    },
+    {
+        "instance_key": "cable_123",
+        "predicted_id_without_number": "cable",
+        "best_iou": 0.001889189121224051,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Black cable with a slightly flattened, rounded cross-section and a visible seam or split along its length": 0.19969946146011353
+        }
+    },
+    {
+        "instance_key": "rug_124",
+        "predicted_id_without_number": "rug",
+        "best_iou": 0.5291612796457926,
+        "matched_gt_class": "rug",
+        "is_exact_match": true,
+        "raw_results_dict": {
+            "A large rectangular rug with a complex, repeating geometric pattern in shades of beige and cream": 0.27031752467155457
+        }
+    },
+    {
+        "instance_key": "fragment_125",
+        "predicted_id_without_number": "fragment",
+        "best_iou": 0.0028875788150823528,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A roughly rectangular object with a jagged, pixelated edge, appearing to be made of a smooth, light-colored material": 0.1640585958957672
+        }
+    },
+    {
+        "instance_key": "pillow_126",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.026552078918256616,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular cushion with a striped pattern and a forest scene print": 0.2426232248544693
+        }
+    },
+    {
+        "instance_key": "pad_127",
+        "predicted_id_without_number": "pad",
+        "best_iou": 0.024890932632873463,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A soft, rectangular pillow with a faded woodland scene design, likely made of cotton or linen": 0.3103875517845154
+        }
+    },
+    {
+        "instance_key": "acoustic_128",
+        "predicted_id_without_number": "acoustic",
+        "best_iou": 0.02581344124642099,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A lightweight, sound-absorbing ceiling component with a matte finish and irregular edges": 0.19407136738300323
+        }
+    },
+    {
+        "instance_key": "vent_129",
+        "predicted_id_without_number": "vent",
+        "best_iou": 0.006106902727437095,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "White plastic ventilation outlet with angled louvers and a rectangular base": 0.09567510336637497
+        }
+    },
+    {
+        "instance_key": "cooler_130",
+        "predicted_id_without_number": "cooler",
+        "best_iou": 0.09938319237836898,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A heat sink with a rectangular base and vertical fin array, appearing gray and textured": 0.17495927214622498
+        }
+    },
+    {
+        "instance_key": "screen_131",
+        "predicted_id_without_number": "screen",
+        "best_iou": 0.08219409086788063,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular wall-mounted display with a light gray surface": 0.21272821724414825
+        }
+    },
+    {
+        "instance_key": "apparatus_132",
+        "predicted_id_without_number": "apparatus",
+        "best_iou": 0.03836081145410889,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Rectangular component with a textured surface and openings for airflow": 0.20678800344467163
+        }
+    },
+    {
+        "instance_key": "canvas_133",
+        "predicted_id_without_number": "canvas",
+        "best_iou": 0.0065655961052416105,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular canvas print featuring a grayscale image of a boat on a body of water": 0.31322962045669556
+        }
+    },
+    {
+        "instance_key": "tile_134",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.025595172821046567,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular ceiling tile, white with a slightly textured surface, likely made of compressed fiberboard or mineral wool": 0.2386934459209442
+        }
+    },
+    {
+        "instance_key": "luminaire_135",
+        "predicted_id_without_number": "luminaire",
+        "best_iou": 0.002420019702073745,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Long, flat lighting panel with a bright white center and a silver frame": 0.1458054929971695
+        }
+    },
+    {
+        "instance_key": "console_136",
+        "predicted_id_without_number": "console",
+        "best_iou": 0.0044138749659803495,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Rustic sideboard featuring paneled doors, a dark finish, and a visible digital display": 0.31637144088745117
+        }
+    },
+    {
+        "instance_key": "fragment_137",
+        "predicted_id_without_number": "fragment",
+        "best_iou": 0.024272252243997903,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A damaged or broken ceiling tile with irregular edges": 0.28248241543769836
+        }
+    },
+    {
+        "instance_key": "pot_138",
+        "predicted_id_without_number": "pot",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A cylindrical container filled with dark soil, featuring a label with text: \u201cPLANTING MIX\u201d": 0.26769012212753296
+        }
+    },
+    {
+        "instance_key": "container_139",
+        "predicted_id_without_number": "container",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A round tin holding soil and a yellow blossom": 0.2868087887763977
+        }
+    },
+    {
+        "instance_key": "chair_140",
+        "predicted_id_without_number": "chair",
+        "best_iou": 0.41907625100502144,
+        "matched_gt_class": "chair",
+        "is_exact_match": true,
+        "raw_results_dict": {
+            "Upholstered armchair with a square back pillow": 0.28817737102508545
+        }
+    },
+    {
+        "instance_key": "cushion_141",
+        "predicted_id_without_number": "cushion",
+        "best_iou": 0.3857827926952592,
+        "matched_gt_class": "cushion",
+        "is_exact_match": true,
+        "raw_results_dict": {
+            "A soft, square cushion made of a smooth, pale blue fabric": 0.258917897939682
+        }
+    },
+    {
+        "instance_key": "tiles_143",
+        "predicted_id_without_number": "tiles",
+        "best_iou": 0.21004805477620467,
+        "matched_gt_class": "ceiling",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Damaged ceiling tiles with missing sections": 0.22297540307044983
+        }
+    },
+    {
+        "instance_key": "gadget_144",
+        "predicted_id_without_number": "gadget",
+        "best_iou": 0.002063065310214494,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "White, rounded, portable device with a textured surface and a display area": 0.15874004364013672
+        }
+    },
+    {
+        "instance_key": "couch_145",
+        "predicted_id_without_number": "couch",
+        "best_iou": 0.4065050024208157,
+        "matched_gt_class": "sofa",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A three-seater cushioned couch with a structured frame and decorative pillows.": 0.26875388622283936
+        }
+    },
+    {
+        "instance_key": "panel_146",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.02414250047494185,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat panel LED light with a white surface and a thin border": 0.1996372491121292
+        }
+    },
+    {
+        "instance_key": "luminaire_147",
+        "predicted_id_without_number": "luminaire",
+        "best_iou": 0.022467553787499105,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Ceiling-mounted light source with a textured surface and irregular illumination": 0.19394046068191528
+        }
+    },
+    {
+        "instance_key": "fragment_148",
+        "predicted_id_without_number": "fragment",
+        "best_iou": 0.0028102196049999456,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Damaged ceiling tile, likely made of fiberboard, with a rough texture and irregular edges, approximately 60cm x 120cm": 0.22111456096172333
+        }
+    },
+    {
+        "instance_key": "luminaire_149",
+        "predicted_id_without_number": "luminaire",
+        "best_iou": 0.23581552925398092,
+        "matched_gt_class": "lamp",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Flat panel lighting element with a bright white surface and a surrounding border": 0.22159343957901
+        }
+    },
+    {
+        "instance_key": "conduit_150",
+        "predicted_id_without_number": "conduit",
+        "best_iou": 0.0007749505563383175,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A long, dark, rectangular object with a slightly curved profile": 0.14975829422473907
+        }
+    },
+    {
+        "instance_key": "cushion_151",
+        "predicted_id_without_number": "cushion",
+        "best_iou": 0.03659008041433363,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A section of a sofa or couch, featuring soft upholstery and a padded surface.": 0.24561932682991028
+        }
+    },
+    {
+        "instance_key": "tile_152",
+        "predicted_id_without_number": "tile",
+        "best_iou": 0.016828662082893714,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A damaged ceiling tile with a coarse surface and visible imperfections": 0.22922742366790771
+        }
+    },
+    {
+        "instance_key": "stand_153",
+        "predicted_id_without_number": "stand",
+        "best_iou": 0.21578060592551626,
+        "matched_gt_class": "book",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A small, angled platform with a textured top and a metallic base, resembling a display stand": 0.1970529854297638
+        }
+    },
+    {
+        "instance_key": "mat_154",
+        "predicted_id_without_number": "mat",
+        "best_iou": 0.08914990662608521,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Pale, slightly textured floor covering with rounded obstructions": 0.22971689701080322
+        }
+    },
+    {
+        "instance_key": "edging_155",
+        "predicted_id_without_number": "edging",
+        "best_iou": 0.0026041571168452004,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Baseboard or skirting board, constructed from a dark-colored composite material, featuring a rectangular profile": 0.22527509927749634
+        }
+    },
+    {
+        "instance_key": "sensor_158",
+        "predicted_id_without_number": "sensor",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular electronic device with a textured surface and a series of small, raised bumps along its length": 0.15157125890254974
+        }
+    },
+    {
+        "instance_key": "blinds_159",
+        "predicted_id_without_number": "blinds",
+        "best_iou": 8.016992904807752e-05,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rectangular window covering with horizontal slats, likely made of plastic or wood": 0.1684695929288864
+        }
+    },
+    {
+        "instance_key": "pad_160",
+        "predicted_id_without_number": "pad",
+        "best_iou": 0.11662243101634182,
+        "matched_gt_class": "sofa",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "White rectangular padded object with slightly rounded edges": 0.21037951111793518
+        }
+    },
+    {
+        "instance_key": "pillow_161",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.12326896769288817,
+        "matched_gt_class": "sofa",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A soft, rectangular pillow covered in a plain white fabric": 0.26533180475234985
+        }
+    },
+    {
+        "instance_key": "sculpture_162",
+        "predicted_id_without_number": "sculpture",
+        "best_iou": 0.0019828821410459805,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A silver-colored, curved ornamental piece resembling a stylized animal or mythical creature": 0.18443825840950012
+        }
+    },
+    {
+        "instance_key": "table_163",
+        "predicted_id_without_number": "table",
+        "best_iou": 0.10088794758520316,
+        "matched_gt_class": "table",
+        "is_exact_match": true,
+        "raw_results_dict": {
+            "Oval wooden coffee table with a decorative ceramic vase, small plants, and metal accents": 0.30459749698638916
+        }
+    },
+    {
+        "instance_key": "rail_164",
+        "predicted_id_without_number": "rail",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Mounting rail for roller shades, silver-colored metal, long and narrow with visible mounting points, around 1.8 meters in length and 4 centimeters in width": 0.1764952540397644
+        }
+    },
+    {
+        "instance_key": "window_165",
+        "predicted_id_without_number": "window",
+        "best_iou": 0.18618407239263873,
+        "matched_gt_class": "window",
+        "is_exact_match": true,
+        "raw_results_dict": {
+            "A rectangular window with horizontal blinds, primarily white with a metallic sheen": 0.3090675175189972
+        }
+    },
+    {
+        "instance_key": "window_166",
+        "predicted_id_without_number": "window",
+        "best_iou": 0.003290709326440427,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A window with horizontal blinds, dark gray in color, made of metal or plastic": 0.20660142600536346
+        }
+    },
+    {
+        "instance_key": "blinds_167",
+        "predicted_id_without_number": "blinds",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "White horizontal slats connected by cords, forming a covering for a window": 0.26669058203697205
+        }
+    },
+    {
+        "instance_key": "plate_169",
+        "predicted_id_without_number": "plate",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A thin, rectangular metal plate with a wavy edge, possibly a decorative element or part of a larger mechanism": 0.1472860425710678
+        }
+    },
+    {
+        "instance_key": "gutter_170",
+        "predicted_id_without_number": "gutter",
+        "best_iou": 6.90074590073308e-05,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A section of corrugated roofing material, likely aluminum or steel": 0.17676764726638794
+        }
+    },
+    {
+        "instance_key": "illuminator_171",
+        "predicted_id_without_number": "illuminator",
+        "best_iou": 0.001739007502941098,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A long, rectangular light fixture with a white, possibly plastic or metal, housing and a series of evenly spaced, small, red lights along its length": 0.11662235856056213
+        }
+    },
+    {
+        "instance_key": "radiance_172",
+        "predicted_id_without_number": "radiance",
+        "best_iou": 0.0076421528302477865,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Linear lighting element with red glowing edges": 0.12507817149162292
+        }
+    },
+    {
+        "instance_key": "luminaire_173",
+        "predicted_id_without_number": "luminaire",
+        "best_iou": 0.021535795705727973,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Rectangular lighting fixture with multiple fluorescent tubes and a white diffuser panel": 0.20064321160316467
+        }
+    },
+    {
+        "instance_key": "strip_175",
+        "predicted_id_without_number": "strip",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A long, thin strip of dark material, potentially plastic or metal, with a slightly rough texture": 0.20546594262123108
+        }
+    },
+    {
+        "instance_key": "window_176",
+        "predicted_id_without_number": "window",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Rectangular window with a white translucent curtain inside a gray frame": 0.2949331998825073
+        }
+    },
+    {
+        "instance_key": "panel_177",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A panelled interior door, light brown in color, with visible hinges and a circular indentation for a handle": 0.2709276080131531
+        }
+    },
+    {
+        "instance_key": "panel_178",
+        "predicted_id_without_number": "panel",
+        "best_iou": 0.02216627584926007,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A dark-colored, rectangular panel affixed to a wall, displaying a monochromatic landscape": 0.19397665560245514
+        }
+    },
+    {
+        "instance_key": "form_179",
+        "predicted_id_without_number": "form",
+        "best_iou": 5.158751356222497e-05,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "An abstract, organic shape resembling a plant or a flame": 0.15815895795822144
+        }
+    },
+    {
+        "instance_key": "textile_181",
+        "predicted_id_without_number": "textile",
+        "best_iou": 0.008089182476040228,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A textile square with a winter tree design, appearing slightly textured": 0.263448566198349
+        }
+    },
+    {
+        "instance_key": "cushion_182",
+        "predicted_id_without_number": "cushion",
+        "best_iou": 0.018683739604031465,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "Decorative cushion with a tree design, made of a smooth, possibly cotton material, and a square shape": 0.2867475152015686
+        }
+    },
+    {
+        "instance_key": "luminaire_183",
+        "predicted_id_without_number": "luminaire",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A cylindrical light diffuser or protective cover": 0.1711542010307312
+        }
+    },
+    {
+        "instance_key": "reflector_184",
+        "predicted_id_without_number": "reflector",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A narrow, rectangular strip with a reflective surface and a slightly textured appearance": 0.17533975839614868
+        }
+    },
+    {
+        "instance_key": "component_185",
+        "predicted_id_without_number": "component",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A rigid, dark gray or black piece with a toothed edge, potentially a component of a mechanical device": 0.20397885143756866
+        }
+    },
+    {
+        "instance_key": "covering_186",
+        "predicted_id_without_number": "covering",
+        "best_iou": 0.1721159254764361,
+        "matched_gt_class": "cushion",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A folded, patterned throw blanket draped over a cushion": 0.2594945728778839
+        }
+    },
+    {
+        "instance_key": "pillow_187",
+        "predicted_id_without_number": "pillow",
+        "best_iou": 0.7796140445062774,
+        "matched_gt_class": "cushion",
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A square cushion with a patterned, light-colored fabric surface": 0.2185971736907959
+        }
+    },
+    {
+        "instance_key": "window_188",
+        "predicted_id_without_number": "window",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A window with horizontal blinds, made of metal, with a white coating and a repeating linear pattern": 0.2580872178077698
+        }
+    },
+    {
+        "instance_key": "blinds_189",
+        "predicted_id_without_number": "blinds",
+        "best_iou": 0,
+        "matched_gt_class": null,
+        "is_exact_match": false,
+        "raw_results_dict": {
+            "A window covering with horizontal slats, likely made of plastic or metal, and a white frame": 0.2581891715526581
+        }
+    }
+]
