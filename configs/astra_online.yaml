@@ -1,0 +1,55 @@
+model:
+  source_path: "/tmp/gs_online_dummy"  # Not used in online mode (frames come from robot)
+  model_path: "outputs/online_slam"
+  eval: false
+  init_type: random
+  mask_subdir: null   # No pre-computed SAM masks in online mode
+opt:
+  iterations: 50000   # Max iterations (safety limit, actual stop is controlled by online.extra_iterations)
+  lambda_depth: 1.0
+  lambda_thin: 0.0
+  densify_from_iter: 300
+  densify_until_iter: 25000
+  densify_grad_threshold: 0.0004
+  opacity_reset_interval: 3000
+  random_background: true
+  random_background_features: false
+  inst2d_lambda: 0.0   # No masks in online mode
+  var_lambda: 0.0
+  optimize_poses: true  # Bundle Adjustment on camera poses
+  ignore_dynamic: true  # Filter out dynamic objects from optimization
+online:
+  enabled: true
+  mode: bag                # "socket", "watchdir", or "bag"
+  dav2_online: true
+  depth_mode: dav2_align   # Modo de profundidad: "sensor", "inpaint", "pda", o "dav2_align" (Alineación métrica de DAV2)
+  viewer: true             # Habilita el visualizador interactivo 3D en tiempo real (Viser)
+  
+  # ROS2 bag streaming parameters
+  bag_path: "/home/ubuntu/datasets/astra_lab/astra_lab_0.db3"
+  color_topic: "/astra_camera/color/image_raw"
+  depth_topic: "/astra_camera/depth/image_raw"
+  odom_topic: "/odom"
+  tf_topic: "/tf"
+  world_frame: "odom"
+  camera_frame: "astra_camera_color_optical_frame"
+  play_delay: 0.02          # delay in seconds to simulate real-time playback  
+  # Keyframe selection
+  min_translation: 0.05   # meters
+  min_rotation: 5.0        # degrees
+  max_keyframes: 300
+  # Post-robot
+  extra_iterations: 5000
+  # GS-ICP pose refinement
+  icp_enabled: false
+  icp_max_correspondence: 0.1
+  icp_voxel_size: 0.02
+  icp_fitness_threshold: 0.3
+  # Initial point cloud
+  init_from_first_frame: true
+  init_num_points: 50000
+cluster:
+  enabled: true
+  min_size: 32
+lang:
+  enabled: false       # Enable if you want language embeddings after training

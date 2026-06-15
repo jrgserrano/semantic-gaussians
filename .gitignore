@@ -1,0 +1,34 @@
+__pycache__
+*.pyc
+.pytest_cache
+.venv/
+.ruff_cache
+
+.env
+
+docs/build
+
+
+# VSCode
+.nfs*
+.vscode/
+
+# Custom
+*.ckpt
+/logs
+/data
+/output
+/ckpts
+/slurm_output
+/slurm_ckpts
+/outputs
+
+
+*.pt
+
+flash_4_configs.p
+*.png
+*.mp4
+cluster_labels.npy
+scannetpp.txt
+pyproject.old.toml

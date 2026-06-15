@@ -1,0 +1,7 @@
+scene_list_file: ${SCANNETPP_ROOT_PATH}/splits/nvs_sem_val.txt
+
+gt_dir: ${SCANNETPP_PATH}/sem_gt/val
+
+data_root: ${SCANNETPP_ROOT_PATH}/data
+
+classes_file: ${SCANNETPP_ROOT_PATH}/metadata/semantic_benchmark/top100.txt

@@ -1,0 +1,27 @@
+model:
+  eval: true
+  init_points: -1
+  mask_subdir: sam
+  nth_frames: 4
+opt:
+  densify_until_iter: 18000
+  densify_grad_threshold: 2.0e-4
+  random_background: true
+  random_background_features: true
+  inst2d_lambda: 0.1
+  var_lambda: 0.5
+  lambda_depth: 0.1
+cluster:
+  enabled: true
+  min_size: 32
+  min_samples: 16
+lang:
+  enabled: true
+  model: masqclip
+  topk: 5
+  levels: 3 # 0 for using full image with masqclip
+  ratio: 0.3
+  dynamic_ratio: true
+desc:
+  enabled: true
+  debug: true

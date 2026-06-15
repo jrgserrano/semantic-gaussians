@@ -1,0 +1,30 @@
+model:
+  source_path: "/home/ubuntu/datasets/ScanNet/processed2"
+  model_path: "outputs/scannet/scene0000_01_2"
+  init_type: random # sample
+  init_points: 150000 
+  mask_subdir: "sam"
+opt:
+  iterations: 50000
+  position_lr_max_steps: 50000
+  position_lr_init: 1.6e-5
+  lambda_depth: 0.0
+  lambda_normal: 0.00
+  densify_until_iter: 30000
+  densify_grad_threshold: 0.0003
+  random_background: true
+  random_background_features: true
+  inst2d_lambda: 0.2
+  var_lambda: 0.1
+  lambda_thin: 0.0
+cluster:
+  enabled: true
+  min_size: 32
+  min_samples: 16
+lang:
+  enabled: true
+  model: masqclip
+  topk: 5
+  levels: 3 # 0 for using full image with masqclip
+  ratio: 0.3
+  dynamic_ratio: true

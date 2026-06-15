@@ -1,0 +1,34 @@
+model:
+  source_path: "/home/ubuntu/datasets/Replica/office1"
+  model_path: "outputs/Replica/office1"
+  eval: false
+  init_type: ply
+  init_points: 100000
+  num_frames: -1
+  nth_frames: 4
+  mask_subdir: "sam"
+  resolution: 1
+
+opt:
+  iterations: 30000
+  densify_until_iter: 15000
+  densify_grad_threshold: 0.0002
+  random_background: true
+  random_background_features: true
+  inst2d_lambda: 0.1
+  var_lambda: 0.5
+  lambda_depth: 0.1
+
+cluster:
+  enabled: true
+  min_size: 32
+  min_samples: 16
+
+lang:
+  enabled: true
+  model: masqclip
+  topk: 5
+
+desc:
+  enabled: true
+  debug: true

@@ -1,0 +1,10 @@
+[submodule "submodules/simple-knn"]
+	path = submodules/simple-knn
+	url = https://github.com/camenduru/simple-knn
+
+# [submodule "submodules/scannetpp"]
+# 	path = submodules/scannetpp
+# 	url = https://github.com/scannetpp/scannetpp.git
+[submodule "submodules/fast_gicp"]
+	path = submodules/fast_gicp
+	url = https://github.com/Lab-of-AI-and-Robotics/fast_gicp

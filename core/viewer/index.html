@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+	<title>WebGL Gaussian Splat Viewer</title>
+	<meta charset="utf-8" />
+	<meta name="viewport"
+		content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<style>
+		body {
+			overflow: hidden;
+			margin: 0;
+			height: 100vh;
+			width: 100vw;
+			font-family: sans-serif;
+			background: black;
+			text-shadow: 0 0 3px black;
+		}
+
+		a,
+		body {
+			color: white;
+		}
+
+		#info {
+			z-index: 100;
+			position: absolute;
+			top: 10px;
+			left: 15px;
+		}
+
+		h3 {
+			margin: 5px 0;
+		}
+
+		p {
+			margin: 5px 0;
+			font-size: small;
+		}
+
+		.cube-wrapper {
+			transform-style: preserve-3d;
+		}
+
+		.cube {
+			transform-style: preserve-3d;
+			transform: rotateX(45deg) rotateZ(45deg);
+			animation: rotation 2s infinite;
+		}
+
+		.cube-faces {
+			transform-style: preserve-3d;
+			height: 80px;
+			width: 80px;
+			position: relative;
+			transform-origin: 0 0;
+			transform: translateX(0) translateY(0) translateZ(-40px);
+		}
+
+		.cube-face {
+			position: absolute;
+			inset: 0;
+			background: #0017ff;
+			border: solid 1px #ffffff;
+		}
+
+		.cube-face.top {
+			transform: translateZ(80px);
+		}
+
+		.cube-face.front {
+			transform-origin: 0 50%;
+			transform: rotateY(-90deg);
+		}
+
+		.cube-face.back {
+			transform-origin: 0 50%;
+			transform: rotateY(-90deg) translateZ(-80px);
+		}
+
+		.cube-face.right {
+			transform-origin: 50% 0;
+			transform: rotateX(-90deg) translateY(-80px);
+		}
+
+		.cube-face.left {
+			transform-origin: 50% 0;
+			transform: rotateX(-90deg) translateY(-80px) translateZ(80px);
+		}
+
+		@keyframes rotation {
+			0% {
+				transform: rotateX(45deg) rotateY(0) rotateZ(45deg);
+				animation-timing-function: cubic-bezier(0.17,
+						0.84,
+						0.44,
+						1);
+			}
+
+			50% {
+				transform: rotateX(45deg) rotateY(0) rotateZ(225deg);
+				animation-timing-function: cubic-bezier(0.76,
+						0.05,
+						0.86,
+						0.06);
+			}
+
+			100% {
+				transform: rotateX(45deg) rotateY(0) rotateZ(405deg);
+				animation-timing-function: cubic-bezier(0.17,
+						0.84,
+						0.44,
+						1);
+			}
+		}
+
+		.scene,
+		#message {
+			position: absolute;
+			display: flex;
+			top: 0;
+			right: 0;
+			left: 0;
+			bottom: 0;
+			z-index: 2;
+			height: 100%;
+			width: 100%;
+			align-items: center;
+			justify-content: center;
+		}
+
+		#message {
+			font-weight: bold;
+			font-size: large;
+			color: red;
+			pointer-events: none;
+		}
+
+		details {
+			font-size: small;
+
+		}
+
+		#progress {
+			position: absolute;
+			top: 0;
+			height: 5px;
+			background: blue;
+			z-index: 99;
+			transition: width 0.1s ease-in-out;
+		}
+
+		#quality {
+			position: absolute;
+			bottom: 10px;
+			z-index: 999;
+			right: 10px;
+		}
+
+		#caminfo {
+			position: absolute;
+			top: 10px;
+			z-index: 999;
+			right: 10px;
+		}
+
+		#canvas {
+			display: block;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			touch-action: none;
+		}
+
+		#instructions {
+			background: rgba(0, 0, 0, 0.6);
+			white-space: pre-wrap;
+			padding: 10px;
+			border-radius: 10px;
+			font-size: x-small;
+		}
+
+		body.nohf .nohf {
+			display: none;
+		}
+
+		body.nohf #progress,
+		body.nohf .cube-face {
+			background: #fff;
+		}
+
+		@keyframes pulse {
+			0% {
+				transform: scale(0.9);
+				opacity: 0.6;
+			}
+
+			50% {
+				transform: scale(1.2);
+				opacity: 1;
+				box-shadow: 0 0 12px #fff;
+			}
+
+			100% {
+				transform: scale(0.9);
+				opacity: 0.6;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<script>
+		if (window.location.protocol === 'file:') {
+			const banner = document.createElement('div');
+			banner.style.position = 'fixed';
+			banner.style.top = '0';
+			banner.style.left = '0';
+			banner.style.width = '100%';
+			banner.style.backgroundColor = '#ff4a4a';
+			banner.style.color = 'white';
+			banner.style.padding = '14px 24px';
+			banner.style.textAlign = 'center';
+			banner.style.zIndex = '99999';
+			banner.style.fontSize = '14px';
+			banner.style.fontWeight = '600';
+			banner.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+			banner.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+			banner.innerHTML = '⚠️ <strong>Restricción del Navegador (CORS):</strong> Has abierto el visualizador desde un archivo local (<code>file://</code>). Los navegadores modernos bloquean los scripts 3D en este modo. <br>Para ver las gaussianas, por favor abre <a href="http://localhost:8080" style="color: white; text-decoration: underline; font-weight: bold;" target="_blank">http://localhost:8080</a> en tu navegador.';
+			document.body.appendChild(banner);
+		}
+		if (location.host.includes('hf.space')) document.body.classList.add('nohf');
+	</script>
+
+
+	<div id="progress"></div>
+
+	<div id="message"></div>
+	<div class="scene" id="spinner">
+		<div class="cube-wrapper">
+			<div class="cube">
+				<div class="cube-faces">
+					<div class="cube-face bottom"></div>
+					<div class="cube-face top"></div>
+					<div class="cube-face left"></div>
+					<div class="cube-face right"></div>
+					<div class="cube-face back"></div>
+					<div class="cube-face front"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<canvas id="canvas"></canvas>
+	<div id="labels-container"
+		style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 510; overflow: hidden;">
+	</div>
+	<canvas id="bbox-canvas"
+		style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500;"></canvas>
+
+	<div id="quality">
+		<span id="fps"></span>
+	</div>
+	<div id="caminfo">
+		<span id="camid"></span>
+	</div>
+
+	<!-- Unified Master Panel -->
+	<div id="master-panel"
+		style="position: absolute; top: 15px; left: 15px; z-index: 1000; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px); padding: 15px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); font-family: system-ui, sans-serif; width: 240px; color: white; pointer-events: auto;">
+		<!-- Header / Toggle -->
+		<div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 5px;"
+			onclick="toggleMasterPanel()">
+			<h4
+				style="margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; display: flex; align-items: center; gap: 6px;">
+				Panel de Control
+			</h4>
+			<span id="master-toggle-arrow"
+				style="font-size: 12px; color: #fff; transition: transform 0.3s ease;">▼</span>
+		</div>
+
+		<!-- Scrollable Content Container -->
+		<div id="master-content"
+			style="max-height: 80vh; overflow-y: auto; overflow-x: hidden; opacity: 1; transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease; margin-top: 10px; padding-right: 5px;">
+
+			<!-- CAMERA CONTROL -->
+			<div style="margin-bottom: 20px;">
+				<label style="font-size: 10px; color: #aaa; display: block; margin-top: 8px; margin-bottom: 4px;">Color
+					de Fondo</label>
+				<select id="bg-color-select"
+					style="width: 100%; background: #222; color: white; border: 1px solid #444; padding: 6px; border-radius: 6px; outline: none; font-size: 11px;"
+					onchange="document.body.style.background = this.value;">
+					<option value="black">Negro (Por defecto)</option>
+					<option value="#333333">Gris Oscuro</option>
+					<option value="#888888">Gris Medio</option>
+					<option value="#dddddd">Gris Claro</option>
+					<option value="white">Blanco</option>
+				</select>
+				<div
+					style="font-size: 10px; color: #ccc; margin-top: 6px; display: flex; justify-content: space-between;">
+					<span>Gaussianas:</span>
+					<span id="gaussian-count" style="color: #fff; font-weight: bold;">0</span>
+				</div>
+			</div>
+			<hr style="border-color: rgba(255,255,255,0.1); margin-bottom: 15px;">
+
+			<!-- SEMANTIC CONTROL -->
+			<div style="margin-bottom: 20px;">
+				<h5 style="margin: 0 0 8px 0; font-size: 12px; color: #fff;">Segmentación Semántica</h5>
+				<label style="font-size: 10px; color: #aaa; display: block; margin-bottom: 4px;">Modo de
+					Visualización</label>
+				<select id="render-mode"
+					style="width: 100%; background: #222; color: white; border: 1px solid #444; padding: 6px; border-radius: 6px; outline: none; font-size: 11px;">
+					<option value="rgb">RGB (Color Original)</option>
+				</select>
+				<label
+					style="font-size: 10px; color: #aaa; display: block; margin-top: 8px; margin-bottom: 4px;">Seleccionar
+					Objeto / Etiqueta</label>
+				<select id="object-select"
+					style="width: 100%; background: #222; color: white; border: 1px solid #444; padding: 6px; border-radius: 6px; outline: none; font-size: 11px;"
+					disabled>
+					<option value="all">Mostrar Todo</option>
+				</select>
+				<div id="object-info" style="margin-top: 10px; font-size: 11px; color: #fff; font-weight: 600;">
+				</div>
+				<label id="toggle-cameras-label"
+					style="font-size: 11px; color: #aaa; display: none; align-items: center; margin-top: 10px; cursor: pointer;">
+					<input type="checkbox" id="toggle-cameras" style="margin-right: 6px; cursor: pointer;">
+					Mostrar Cámaras
+				</label>
+			</div>
+			<hr style="border-color: rgba(255,255,255,0.1); margin-bottom: 15px;">
+
+			<!-- LIVE CAMERAS -->
+			<div id="live-cameras-panel" style="margin-bottom: 10px; display: none;">
+				<h5 style="margin: 0 0 8px 0; font-size: 12px; color: #fff;">Cámaras en Vivo</h5>
+				<div style="display: flex; flex-direction: column; gap: 8px;">
+					<div
+						style="position: relative; width: 100%; aspect-ratio: 4/3; background: #111; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+						<img id="live-rgb" style="width: 100%; height: 100%; object-fit: cover; display: block;" src=""
+							alt="RGB" />
+						<span
+							style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.65); padding: 2px 4px; border-radius: 6px; font-size: 7px; color: #fff; font-weight: bold; letter-spacing: 0.05em; pointer-events: none; backdrop-filter: blur(2px);">RGB</span>
+					</div>
+					<div
+						style="position: relative; width: 100%; aspect-ratio: 4/3; background: #111; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+						<img id="live-depth" style="width: 100%; height: 100%; object-fit: cover; display: block;"
+							src="" alt="Depth" />
+						<span
+							style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.65); padding: 2px 4px; border-radius: 6px; font-size: 7px; color: #fff; font-weight: bold; letter-spacing: 0.05em; pointer-events: none; backdrop-filter: blur(2px);">DEPTH</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- RENDERED CAMERAS -->
+			<div id="rendered-cameras-panel" style="margin-bottom: 10px; display: none;">
+				<h5 style="margin: 0 0 8px 0; font-size: 12px; color: #fff;">Cámaras Renderizadas (Mapper)</h5>
+				<div style="display: flex; flex-direction: column; gap: 8px;">
+					<div
+						style="position: relative; width: 100%; aspect-ratio: 4/3; background: #111; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+						<img id="rendered-rgb" style="width: 100%; height: 100%; object-fit: cover; display: block;"
+							src="" alt="Rendered RGB" />
+						<span
+							style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.65); padding: 2px 4px; border-radius: 6px; font-size: 7px; color: #fff; font-weight: bold; letter-spacing: 0.05em; pointer-events: none; backdrop-filter: blur(2px);">REND.
+							RGB</span>
+					</div>
+					<div
+						style="position: relative; width: 100%; aspect-ratio: 4/3; background: #111; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+						<img id="rendered-depth" style="width: 100%; height: 100%; object-fit: cover; display: block;"
+							src="" alt="Rendered Depth" />
+						<span
+							style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.65); padding: 2px 4px; border-radius: 6px; font-size: 7px; color: #fff; font-weight: bold; letter-spacing: 0.05em; pointer-events: none; backdrop-filter: blur(2px);">REND.
+							DEPTH</span>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	</div>
+
+	<!-- Chat Navigation Panel -->
+	<div id="chat-panel"
+		style="position: absolute; bottom: 20px; right: 20px; z-index: 1000; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); font-family: system-ui, sans-serif; width: 300px; color: white; display: none; flex-direction: column; overflow: hidden; pointer-events: auto;">
+		<!-- Header -->
+		<div
+			style="background: rgba(255, 255, 255, 0.05); padding: 10px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 8px;">
+
+			<h4 style="margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #fff;">
+				Semantic Navigator</h4>
+		</div>
+
+		<!-- Messages Area -->
+		<div id="chat-messages"
+			style="height: 150px; padding: 12px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+			<div
+				style="background: rgba(255,255,255,0.1); padding: 8px 10px; border-radius: 6px; align-self: flex-start; max-width: 85%;">
+				<span style="color: #fff; font-size: 10px; display: block; margin-bottom: 2px;">Sistema</span>
+				Hola, dime a dónde te gustaría ir.
+			</div>
+		</div>
+
+		<!-- Input Area -->
+		<div style="padding: 10px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 8px;">
+			<input type="text" id="chat-input" placeholder="Petición..."
+				style="flex: 1; background: #222; border: 1px solid #444; color: white; padding: 8px 10px; border-radius: 6px; outline: none; font-size: 12px;">
+			<button id="chat-send"
+				style="background: #444; border: none; color: white; font-weight: bold; padding: 0 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Ir</button>
+		</div>
+	</div>
+
+	<script src="main.js"></script>
+</body>
+
+</html>

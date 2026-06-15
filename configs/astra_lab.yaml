@@ -1,0 +1,33 @@
+model:
+  source_path: "/home/ubuntu/datasets/mapir_lab_amcl"
+  model_path: "outputs/mapir_lab_amcl"
+  eval: false
+  init_type: ply
+  num_frames: -1
+  nth_frames: 1
+  mask_subdir: "sam"
+opt:
+  iterations: 30000
+  lambda_depth: 0.1
+  lambda_erank: 0.00
+  lambda_thin: 0.00        # Mayor peso para superficies planas
+  densify_from_iter: 500
+  densify_until_iter: 25000
+  densify_grad_threshold: 0.0004
+  opacity_reset_interval: 3000
+  random_background: true
+  random_background_features: true
+  inst2d_lambda: 0.2
+  var_lambda: 0.5
+  # --- Optimización de Poses (Kalman-inspired) ---
+  optimize_poses: true        # ACTIVADO
+  pose_lr: 0.0001             # LR para las poses
+  lambda_pose_smooth: 0.1     # Peso del Motion Prior (suavidad temporal)
+  pose_refine_start: 0        # Empezar desde el inicio
+cluster:
+  enabled: true
+  min_size: 32
+lang:
+  enabled: true
+  model: masqclip
+  topk: 5
