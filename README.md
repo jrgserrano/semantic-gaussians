@@ -21,6 +21,14 @@ uv sync
 uv sync --extra compile
 ```
 
+Si da error al compilar el rasterizador CUDA:
+
+```bash
+rm -rf submodules/diff-gaussian-rasterization/third_party/glm
+git clone https://github.com/g-truc/glm.git submodules/diff-gaussian-rasterization/third_party/glm
+uv sync --extra compile
+```
+
 ## Checkpoints
 
 Para crear la carpeta de checkpoints y descargar los checkpoints necesarios para usar los modelos fundacionales en el entrenamiento, ejecuta el siguiente comando:
